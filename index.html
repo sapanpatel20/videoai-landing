@@ -568,38 +568,429 @@
   </div>
 </section>
 
-<!-- ── HOW IT WORKS ── -->
+<!-- ── HOW IT WORKS — Zeely-style alternating steps ── -->
 <section class="sec alt-bg" id="how">
-  <div class="sec-inner">
+  <style>
+    .steps-wrap { max-width: 1080px; margin: 0 auto; padding: 0 2rem; position: relative; }
+
+    /* Vertical connecting line */
+    .steps-line {
+      position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(180deg, transparent 0%, var(--border2) 10%, var(--border2) 90%, transparent 100%);
+      transform: translateX(-50%);
+    }
+
+    /* Each step row */
+    .step-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      align-items: center;
+      gap: 0;
+      min-height: 420px;
+      padding: 4rem 0;
+      position: relative;
+    }
+
+    /* Step number bubble in centre column */
+    .step-bubble-col {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      position: relative; z-index: 2;
+    }
+    .step-bubble {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--bg2);
+      border: 2px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-weight: 800; font-size: 1.1rem;
+      color: var(--muted); transition: all .3s;
+      position: relative; z-index: 2;
+      box-shadow: 0 0 0 6px var(--bg2);
+    }
+    .step-row:hover .step-bubble,
+    .step-bubble.lit {
+      background: var(--green-dim);
+      border-color: rgba(0,229,160,0.5);
+      color: var(--green);
+      box-shadow: 0 0 0 6px var(--bg2), 0 0 24px rgba(0,229,160,0.2);
+    }
+
+    /* Text side */
+    .step-text { padding: 0 2.5rem; }
+    .step-text.right { text-align: right; }
+    .step-label {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 1rem;
+    }
+    .step-title {
+      font-family: var(--display); font-weight: 800;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      letter-spacing: -0.03em; line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .step-desc {
+      color: var(--muted); font-size: 1rem; line-height: 1.75;
+      margin-bottom: 1.25rem; max-width: 38ch;
+    }
+    .step-text.right .step-desc { margin-left: auto; }
+    .step-time {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--amber);
+      background: var(--amber-dim); padding: 0.3rem 0.85rem;
+      border-radius: 100px; border: 1px solid rgba(255,181,71,0.18);
+    }
+
+    /* Visual side */
+    .step-visual { padding: 0 1rem; }
+    .step-visual.right { order: -1; }
+    .step-mockup {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: 0 24px 64px -16px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,229,160,0.04);
+    }
+    .step-mockup-bar {
+      background: var(--surface2); border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.4rem;
+    }
+    .sdot { width: 9px; height: 9px; border-radius: 50%; }
+    .step-canvas-wrap canvas { display: block; width: 100%; }
+
+    /* Mobile — stack vertically */
+    @media (max-width: 820px) {
+      .steps-line { display: none; }
+      .step-row { grid-template-columns: 1fr; gap: 1.5rem; padding: 3rem 0; }
+      .step-bubble-col { flex-direction: row; justify-content: flex-start; }
+      .step-text.right { text-align: left; }
+      .step-text.right .step-desc { margin-left: 0; }
+      .step-visual.right { order: 0; }
+    }
+  </style>
+
+  <div class="sec-inner" style="padding-bottom:2rem;">
     <div class="sec-header">
       <div class="sec-tag">How it works</div>
-      <h2 class="sec-title">From blank page to posted video in <mark>3 steps</mark></h2>
-      <p class="sec-sub">No training. No design skills. No production team. Just type and generate.</p>
-    </div>
-    <div class="how-steps">
-      <div class="how-step">
-        <div class="how-num-wrap active">1</div>
-        <div class="how-step-title">Enter Your Topic</div>
-        <div class="how-step-desc">Type your topic, choose your platform (TikTok, Reels or Shorts), pick a tone and your target audience.</div>
-        <div class="how-step-time">&#9201; Takes 20 seconds</div>
-      </div>
-      <div class="how-step">
-        <div class="how-num-wrap active">2</div>
-        <div class="how-step-title">AI Builds Everything</div>
-        <div class="how-step-desc">Claude AI writes your Hook &rarr; Body &rarr; CTA. Browser voice reads it aloud. Stock images auto-pulled from Pexels.</div>
-        <div class="how-step-time">&#9201; Takes 5 seconds</div>
-      </div>
-      <div class="how-step">
-        <div class="how-num-wrap active">3</div>
-        <div class="how-step-title">Download &amp; Post</div>
-        <div class="how-step-desc">Bold caption video with your chosen style. Download it. Post directly to TikTok, Instagram or YouTube Shorts.</div>
-        <div class="how-step-time">&#9201; Posted in under 60s</div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:3.5rem;">
-      <a href="script-generator.html" class="btn-hero">Try it free &mdash; no card needed</a>
+      <h2 class="sec-title">From blank page to posted video &mdash; <mark>step by step</mark></h2>
+      <p class="sec-sub">No training. No editing skills. No production team. Follow 4 steps and your video is ready to post.</p>
     </div>
   </div>
+
+  <div class="steps-wrap">
+    <div class="steps-line"></div>
+
+    <!-- STEP 1 — text left, visual right -->
+    <div class="step-row">
+      <div class="step-text">
+        <div class="step-label">&#9679; Step 1</div>
+        <div class="step-title">Enter Your Business Topic</div>
+        <p class="step-desc">Type your topic, choose your platform (TikTok, Reels or Shorts), select your tone and target audience. Takes seconds &mdash; no setup needed.</p>
+        <div class="step-time">&#9201; Takes 20 seconds</div>
+      </div>
+      <div class="step-bubble-col">
+        <div class="step-bubble lit">1</div>
+      </div>
+      <div class="step-visual">
+        <div class="step-mockup">
+          <div class="step-mockup-bar">
+            <div class="sdot" style="background:#FF5F56;"></div>
+            <div class="sdot" style="background:#FFBD2E;"></div>
+            <div class="sdot" style="background:#27C93F;"></div>
+          </div>
+          <div class="step-canvas-wrap">
+            <canvas id="stepCanvas1" width="480" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 — visual left, text right -->
+    <div class="step-row">
+      <div class="step-visual right">
+        <div class="step-mockup">
+          <div class="step-mockup-bar">
+            <div class="sdot" style="background:#FF5F56;"></div>
+            <div class="sdot" style="background:#FFBD2E;"></div>
+            <div class="sdot" style="background:#27C93F;"></div>
+          </div>
+          <div class="step-canvas-wrap">
+            <canvas id="stepCanvas2" width="480" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="step-bubble-col">
+        <div class="step-bubble lit">2</div>
+      </div>
+      <div class="step-text">
+        <div class="step-label">&#9679; Step 2</div>
+        <div class="step-title">AI Writes Your Script Instantly</div>
+        <p class="step-desc">Claude AI generates a complete Hook, Body and CTA script built for your industry and platform. Every word designed to stop the scroll and drive action.</p>
+        <div class="step-time">&#9201; Takes 5 seconds</div>
+      </div>
+    </div>
+
+    <!-- STEP 3 — text left, visual right -->
+    <div class="step-row">
+      <div class="step-text">
+        <div class="step-label">&#9679; Step 3</div>
+        <div class="step-title">Add Voiceover &amp; Pick Your Background</div>
+        <p class="step-desc">Browser voices read your script in seconds. Choose stock images from Pexels, upload your own photos or videos, or record your own face on webcam. All run behind your captions.</p>
+        <div class="step-time">&#9201; Takes 30 seconds</div>
+      </div>
+      <div class="step-bubble-col">
+        <div class="step-bubble lit">3</div>
+      </div>
+      <div class="step-visual">
+        <div class="step-mockup">
+          <div class="step-mockup-bar">
+            <div class="sdot" style="background:#FF5F56;"></div>
+            <div class="sdot" style="background:#FFBD2E;"></div>
+            <div class="sdot" style="background:#27C93F;"></div>
+          </div>
+          <div class="step-canvas-wrap">
+            <canvas id="stepCanvas3" width="480" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 — visual left, text right -->
+    <div class="step-row">
+      <div class="step-visual right">
+        <div class="step-mockup">
+          <div class="step-mockup-bar">
+            <div class="sdot" style="background:#FF5F56;"></div>
+            <div class="sdot" style="background:#FFBD2E;"></div>
+            <div class="sdot" style="background:#27C93F;"></div>
+          </div>
+          <div class="step-canvas-wrap">
+            <canvas id="stepCanvas4" width="480" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="step-bubble-col">
+        <div class="step-bubble lit">4</div>
+      </div>
+      <div class="step-text">
+        <div class="step-label">&#9679; Step 4</div>
+        <div class="step-title">Download &amp; Post &mdash; Watch Leads Come In</div>
+        <p class="step-desc">Bold caption video with animated text ready to go. Download it in one click and post to TikTok, Instagram Reels or YouTube Shorts. The algorithm rewards consistency &mdash; so do your clients.</p>
+        <div class="step-time">&#9201; Posted in under 60 seconds</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;padding:3rem 2rem 5rem;">
+    <a href="script-generator.html" class="btn-hero">&#10022; Try it free &mdash; no card needed</a>
+  </div>
+
+  <script>
+  // ── Step canvas animations ──
+  (function(){
+    function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+r,r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.arcTo(x,y+h,x,y+h-r,r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath(); }
+    function bg(ctx,W,H){ var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#060A12'); g.addColorStop(1,'#0E1828'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
+
+    // ── Canvas 1: Topic input form ──
+    var c1=document.getElementById('stepCanvas1');
+    if(c1){ (function(){
+      var ctx=c1.getContext('2d'), W=c1.width, H=c1.height, t=0;
+      var topics=['Dubai property investment','Fitness weight loss tips','Mortgage approval guide','Business coaching results'];
+      var ti=0, typed=0;
+      function draw(){
+        t++; bg(ctx,W,H);
+        // Label
+        ctx.fillStyle='rgba(237,240,247,0.4)'; ctx.font='500 11px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('What topic do you want to create a video about?',20,18);
+        // Input
+        rr(ctx,20,38,W-40,42,8); ctx.fillStyle='rgba(255,255,255,0.05)'; ctx.fill(); ctx.strokeStyle='rgba(0,229,160,0.4)'; ctx.lineWidth=1; ctx.stroke();
+        var topic=topics[ti%topics.length];
+        var shown=topic.substring(0,Math.floor(typed));
+        ctx.fillStyle='#EDF0F7'; ctx.font='400 14px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(shown,32,59);
+        if(Math.floor(Date.now()/500)%2===0){ var tw=ctx.measureText(shown).width; ctx.fillStyle='#00E5A0'; ctx.fillRect(34+tw,48,1.5,22); }
+        // Platform / Tone / Duration dropdowns
+        var dds=[['Platform','Instagram Reels'],['Tone','Professional'],['Duration','30 seconds']];
+        dds.forEach(function(d,i){
+          var bx=20+i*142, bw=130;
+          rr(ctx,bx,96,bw,36,7); ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=0.5; ctx.stroke();
+          ctx.fillStyle='rgba(237,240,247,0.3)'; ctx.font='10px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText(d[0],bx+10,100);
+          ctx.fillStyle='rgba(237,240,247,0.8)'; ctx.font='500 11px sans-serif'; ctx.textBaseline='middle'; ctx.fillText(d[1],bx+10,118);
+        });
+        // Audience
+        ctx.fillStyle='rgba(237,240,247,0.4)'; ctx.font='11px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('Target audience',20,146);
+        rr(ctx,20,162,W-40,36,7); ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=0.5; ctx.stroke();
+        ctx.fillStyle='rgba(237,240,247,0.55)'; ctx.font='500 12px sans-serif'; ctx.textBaseline='middle'; ctx.fillText('First-home buyers aged 25-40',32,180);
+        // Generate button
+        var btnAlpha = 0.6+0.4*Math.sin(t/40);
+        rr(ctx,20,214,W-40,50,9); ctx.fillStyle='rgba(0,229,160,'+btnAlpha+')'; ctx.fill();
+        ctx.fillStyle='#060A12'; ctx.font='600 15px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('\u2756  Generate My Script',W/2,239);
+        // Advance typing
+        typed += 0.35;
+        if(typed > topics[ti%topics.length].length+8){ typed=0; ti++; }
+      }
+      setInterval(draw,40);
+      draw();
+    })(); }
+
+    // ── Canvas 2: AI Script output ──
+    var c2=document.getElementById('stepCanvas2');
+    if(c2){ (function(){
+      var ctx=c2.getContext('2d'), W=c2.width, H=c2.height, t=0;
+      var lines=[
+        {s:'tag',v:'[HOOK]'},{s:'line',v:'Did you know Dubai has ZERO property tax?'},
+        {s:'line',v:'Most buyers miss this completely.'},
+        {s:'tag',v:'[BODY]'},{s:'line',v:'5% rental yields. Guaranteed.'},
+        {s:'line',v:'100% foreign ownership allowed.'},
+        {s:'line',v:'Properties starting from just $180K.'},
+        {s:'tag',v:'[CTA]'},{s:'line',v:'Book your free consultation today'},
+        {s:'line',v:'at leadai.guru \u2014 limited slots.'},
+      ];
+      var totalC=lines.reduce(function(a,l){return a+l.v.length;},0);
+      var shown=0;
+      function draw(){
+        t++; bg(ctx,W,H);
+        // Thinking pulse when just starting
+        if(shown<10){
+          for(var d=0;d<3;d++){ var a=(Date.now()/600+d*2.1)%(Math.PI*2); ctx.fillStyle='rgba(0,229,160,'+(0.4+0.5*((d+1)/3))+')'; ctx.beginPath(); ctx.arc(W/2+Math.cos(a)*20,44+Math.sin(a)*8,5,0,Math.PI*2); ctx.fill(); }
+          ctx.fillStyle='rgba(237,240,247,0.4)'; ctx.font='12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('Claude AI writing your script...',W/2,64);
+        }
+        // Script lines
+        rr(ctx,16,16,W-32,H-32,10); ctx.fillStyle='rgba(255,255,255,0.025)'; ctx.fill(); ctx.strokeStyle='rgba(0,229,160,0.07)'; ctx.lineWidth=0.5; ctx.stroke();
+        var cc=0, ly=26;
+        lines.forEach(function(line){
+          if(ly>H-20)return;
+          ctx.fillStyle=line.s==='tag'?'#00E5A0':'rgba(237,240,247,0.82)';
+          ctx.font=(line.s==='tag'?'700 11px':'400 13px')+' sans-serif';
+          ctx.textAlign='left'; ctx.textBaseline='top';
+          ctx.fillText(line.v.substring(0,Math.max(0,shown-cc)),28,ly);
+          cc+=line.v.length; ly+=line.s==='tag'?20:18;
+        });
+        // Copy button bottom
+        if(shown>=totalC-10){
+          rr(ctx,W-120,H-48,108,32,7); ctx.fillStyle='var(--green-dim,rgba(0,229,160,0.1))'; ctx.fill(); ctx.strokeStyle='rgba(0,229,160,0.3)'; ctx.lineWidth=0.5; ctx.stroke();
+          ctx.fillStyle='#00E5A0'; ctx.font='600 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('\u2713 Script Ready!',W-66,H-32);
+        }
+        shown+=0.8; if(shown>totalC+20){ shown=0; }
+      }
+      setInterval(draw,40);
+      draw();
+    })(); }
+
+    // ── Canvas 3: Voice + media picker ──
+    var c3=document.getElementById('stepCanvas3');
+    if(c3){ (function(){
+      var ctx=c3.getContext('2d'), W=c3.width, H=c3.height, t=0;
+      var voices=['Daniel (UK)','Samantha (US)','Karen (AU)','Moira (IE)'];
+      var vi=0, pulse=0;
+      var thumbColors=['#041A0C','#0A1828','#1A0A14','#0A140A','#141028','#081A10'];
+      function draw(){
+        t++; pulse=0.7+0.3*Math.sin(t/12);
+        bg(ctx,W,H);
+        // Voice section label
+        ctx.fillStyle='rgba(237,240,247,0.4)'; ctx.font='700 10px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('VOICEOVER',20,16);
+        // Voice select
+        rr(ctx,20,30,200,36,7); ctx.fillStyle='rgba(255,255,255,0.05)'; ctx.fill(); ctx.strokeStyle='rgba(100,180,255,0.3)'; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle='#64B4FF'; ctx.font='500 12px sans-serif'; ctx.textBaseline='middle'; ctx.fillText('\u{1F3A4} '+voices[Math.floor(t/80)%voices.length],30,48);
+        // Speed/pitch
+        rr(ctx,228,30,105,36,7); ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=0.5; ctx.stroke();
+        ctx.fillStyle='rgba(237,240,247,0.5)'; ctx.font='11px sans-serif'; ctx.fillText('Speed: Normal',236,48);
+        rr(ctx,341,30,W-361,36,7); ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=0.5; ctx.stroke();
+        ctx.fillStyle='rgba(237,240,247,0.5)'; ctx.fillText('Pitch: Normal',349,48);
+        // Play button with pulse
+        rr(ctx,20,76,W-40,42,8); ctx.fillStyle='rgba(100,180,255,'+(0.15*pulse)+')'; ctx.fill(); ctx.strokeStyle='rgba(100,180,255,0.4)'; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle='#64B4FF'; ctx.font='600 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('\u25B6 Play Voiceover',W/2,97);
+
+        // Background source tabs
+        ctx.fillStyle='rgba(237,240,247,0.4)'; ctx.font='700 10px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('BACKGROUND SOURCE',20,134);
+        var tabs=['\u{1F5BC} Pexels','\u2B06 Upload','\u{1F4F9} Webcam'];
+        tabs.forEach(function(tab,i){
+          var active=i===0;
+          rr(ctx,20+i*130,150,122,34,7);
+          ctx.fillStyle=active?'rgba(0,229,160,0.12)':'rgba(255,255,255,0.03)'; ctx.fill();
+          ctx.strokeStyle=active?'rgba(0,229,160,0.35)':'rgba(255,255,255,0.07)'; ctx.lineWidth=active?1:0.5; ctx.stroke();
+          ctx.fillStyle=active?'#00E5A0':'rgba(237,240,247,0.45)'; ctx.font=(active?'600':'400')+' 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(tab,20+i*130+61,167);
+        });
+        // Thumbnail grid
+        var cols=6; var thumbW=(W-40-cols*4)/cols;
+        for(var i=0;i<cols;i++){
+          var tx=20+i*(thumbW+4), ty=196;
+          rr(ctx,tx,ty,thumbW,thumbW*1.4,5);
+          ctx.fillStyle=thumbColors[i]; ctx.fill();
+          // Selected ring on first 3
+          if(i<3){ ctx.strokeStyle='#00E5A0'; ctx.lineWidth=2; ctx.stroke(); }
+          else { ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=0.5; ctx.stroke(); }
+          // Checkmark
+          if(i<3){ ctx.fillStyle='#00E5A0'; ctx.beginPath(); ctx.arc(tx+thumbW-8,ty+8,7,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#060A12'; ctx.font='700 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('\u2713',tx+thumbW-8,ty+8); }
+        }
+        ctx.fillStyle='rgba(237,240,247,0.3)'; ctx.font='10px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText('3 photos selected \u2022 from Pexels',20,H-18);
+        t++;
+      }
+      setInterval(draw,40);
+      draw();
+    })(); }
+
+    // ── Canvas 4: Caption video preview + download ──
+    var c4=document.getElementById('stepCanvas4');
+    if(c4){ (function(){
+      var ctx=c4.getContext('2d'), W=c4.width, H=c4.height, t=0;
+      var caps=['Dubai has','ZERO tax!','5% yields','From $180K','Book now!'];
+      var ci=0, fade=0;
+      function draw(){
+        t++; bg(ctx,W,H);
+        // Phone frame left side
+        var pw=100, ph=180, px=40, py=(H-ph)/2;
+        var vg=ctx.createLinearGradient(px,py,px,py+ph); vg.addColorStop(0,'#041A0C'); vg.addColorStop(1,'#0D2A18');
+        rr(ctx,px,py,pw,ph,10); ctx.fillStyle=vg; ctx.fill(); ctx.strokeStyle='rgba(0,229,160,0.2)'; ctx.lineWidth=1; ctx.stroke();
+        // Caption text on phone
+        var cap=caps[ci%caps.length];
+        fade+=0.06; if(fade>1){fade=0;ci++;}
+        var a=Math.min(1,fade*3);
+        ctx.font='900 18px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.strokeStyle='rgba(0,0,0,0.95)'; ctx.lineWidth=7; ctx.lineJoin='round'; ctx.strokeText(cap,px+pw/2,py+ph*0.55);
+        ctx.fillStyle='rgba(255,230,0,'+a+')'; ctx.fillText(cap,px+pw/2,py+ph*0.55);
+        // Progress bar on phone
+        ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.fillRect(px+8,py+ph-14,pw-16,3);
+        ctx.fillStyle='#00E5A0'; ctx.fillRect(px+8,py+ph-14,(pw-16)*(ci%caps.length+fade)/caps.length,3);
+        // Watermark
+        ctx.fillStyle='rgba(0,229,160,0.7)'; ctx.font='700 9px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText('LeadAI',px+pw/2,py+10);
+
+        // Right panel — download options
+        var rx=px+pw+30;
+        // Style badge
+        rr(ctx,rx,py,W-rx-20,32,7); ctx.fillStyle='rgba(0,229,160,0.08)'; ctx.fill(); ctx.strokeStyle='rgba(0,229,160,0.2)'; ctx.lineWidth=0.5; ctx.stroke();
+        ctx.fillStyle='#00E5A0'; ctx.font='600 11px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('\u2714 Bold Yellow style \u2022 30 frames',rx+10,py+16);
+
+        // Platform chips
+        var platforms=['\uD83C\uDF99 TikTok','\uD83D\uDCF1 Reels','\uD83C\uDFA5 Shorts'];
+        platforms.forEach(function(p,i){
+          var chip_y=py+44+i*36;
+          rr(ctx,rx,chip_y,W-rx-20,28,6); ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=0.5; ctx.stroke();
+          ctx.fillStyle='rgba(237,240,247,0.7)'; ctx.font='12px sans-serif'; ctx.textBaseline='middle'; ctx.fillText(p,rx+10,chip_y+14);
+          // check
+          ctx.fillStyle='rgba(0,229,160,0.15)'; ctx.beginPath(); ctx.arc(W-36,chip_y+14,9,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#00E5A0'; ctx.font='700 10px sans-serif'; ctx.textAlign='center'; ctx.fillText('\u2713',W-36,chip_y+14);
+          ctx.textAlign='left';
+        });
+
+        // Big download button
+        var pulse=0.85+0.15*Math.sin(t/15);
+        rr(ctx,rx,py+160,W-rx-20,46,9); ctx.fillStyle='rgba(0,229,160,'+pulse+')'; ctx.fill();
+        ctx.fillStyle='#060A12'; ctx.font='700 14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('\u2B07 Download Video',rx+(W-rx-20)/2,py+183);
+
+        // Confetti dots
+        if(t%120<30){
+          for(var d=0;d<8;d++){
+            var angle=(t*0.05+d*0.8)%(Math.PI*2);
+            var rad=30+d*8;
+            var ex=W/2+Math.cos(angle)*rad, ey=py+ph/2+Math.sin(angle)*rad*0.4;
+            ctx.fillStyle=['#00E5A0','#FFB547','#64B4FF','#FF6060'][d%4];
+            ctx.beginPath(); ctx.arc(ex,ey,3,0,Math.PI*2); ctx.fill();
+          }
+        }
+      }
+      setInterval(draw,40);
+      draw();
+    })(); }
+  })();
+  </script>
 </section>
 
 <!-- ── FEATURES ── -->
