@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LeadAI — Script Generator</title>
+  <title>LeadAI — AI Video Generator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
@@ -663,13 +663,13 @@
 
 <nav>
   <a href="index.html" class="logo">Lead<span>AI</span></a>
-  <span class="nav-badge">Week 1 — Script Generator</span>
+  <a href="pricing.html" style="font-size:0.78rem;color:rgba(240,238,232,0.45);text-decoration:none;border:0.5px solid rgba(255,255,255,0.08);padding:0.35rem 0.85rem;border-radius:6px;transition:color 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color='rgba(240,238,232,0.45)'">Pricing</a>
 </nav>
 
 <div class="container">
 
-  <h1 class="page-title">AI <span>Script</span> Generator</h1>
-  <p class="page-sub">Enter your topic → get a ready-to-record video script in seconds.</p>
+  <h1 class="page-title">AI <span>Video</span> Generator</h1>
+  <p class="page-sub">Enter your topic → AI writes the script, records the voice, and builds your video.</p>
 
   <!-- Input Card -->
   <div class="card">
@@ -781,13 +781,7 @@
         <div class="form-group">
           <label for="voiceId">Voice</label>
           <select id="voiceId">
-            <option value="21m00Tcm4TlvDq8ikWAM">Rachel — calm, professional</option>
-            <option value="AZnzlk1XvdvUeBnXmlld">Domi — strong, confident</option>
-            <option value="EXAVITQu4vr4xnSDxMaL">Bella — warm, friendly</option>
-            <option value="ErXwobaYiN019PkySvjV">Antoni — deep, authoritative</option>
-            <option value="MF3mGyEYCl7XYWbV9V6O">Elli — energetic, youthful</option>
-            <option value="TxGEqnHWrfWFTfGW9XjX">Josh — natural, engaging</option>
-            <option value="VR6AewLTigWG4xSOukaG">Arnold — powerful, bold</option>
+            <option value="">Loading voices...</option>
           </select>
         </div>
         <div class="form-group">
@@ -885,27 +879,7 @@
     </div>
   </div>
 
-  <!-- Next steps -->
-  <div class="next-steps" id="nextSteps">
-    <div class="next-steps-title">Your build roadmap</div>
-    <div class="next-list">
-      <div class="next-item">
-        <span class="week-badge done">Week 1 ✓</span>
-        AI writes your script — done!
-      </div>
-      <div class="next-item">
-        <span class="week-badge done">Week 2 ✓</span>
-        ElevenLabs voiceover — done!
-      </div>
-      <div class="next-item">
-        <span class="week-badge done">Week 3 ✓</span>
-        Caption video generator — done!
-      </div>
-      <div class="next-item">
-        <span class="week-badge w4">Week 4</span>
-        Launch LeadAI beta to real users
-      </div>
-    </div>
+
   </div>
 
 </div>
@@ -1039,7 +1013,6 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     statsRow.style.display = 'grid';
     statsRow.style.animation = 'fadeUp 0.4s ease both';
 
-    document.getElementById('nextSteps').classList.add('visible');
     document.getElementById('voiceCard').classList.add('visible');
   }
 
@@ -1396,6 +1369,41 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   function hideVideoError() {
     document.getElementById('videoError').classList.remove('visible');
   }
+
+
+  // ── Load real voices from ElevenLabs on page load ──
+  async function loadVoices() {
+    var select = document.getElementById('voiceId');
+    try {
+      var res = await fetch('/api/voices');
+      if (!res.ok) throw new Error('Failed');
+      var data = await res.json();
+      select.innerHTML = '';
+      if (data.voices && data.voices.length > 0) {
+        data.voices.forEach(function(v) {
+          var opt = document.createElement('option');
+          opt.value = v.id;
+          opt.textContent = v.name;
+          select.appendChild(opt);
+        });
+      } else {
+        select.innerHTML = '<option value="">No voices found</option>';
+      }
+    } catch(e) {
+      // Fallback to known stable voices if API fails
+      select.innerHTML = [
+        ['Rachel', 'rachel'],
+        ['Domi', 'domi'],
+        ['Bella', 'bella'],
+        ['Antoni', 'antoni'],
+        ['Josh', 'josh'],
+        ['Arnold', 'arnold']
+      ].map(function(v) {
+        return '<option value="' + v[1] + '">' + v[0] + '</option>';
+      }).join('');
+    }
+  }
+  loadVoices();
 
 </script>
 </body>
