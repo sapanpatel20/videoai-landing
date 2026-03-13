@@ -776,10 +776,7 @@
       🎙 Step 2 — Generate AI Voiceover
     </div>
     <div class="voice-body">
-      <div class="form-group">
-        <label for="elevenKey">ElevenLabs API Key</label>
-        <input type="password" id="elevenKey" placeholder="Paste your new ElevenLabs API key here" />
-      </div>
+
       <div class="voice-grid">
         <div class="form-group">
           <label for="voiceId">Voice</label>
@@ -1089,8 +1086,6 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   });
 
   async function generateVoice() {
-    const apiKey = document.getElementById('elevenKey').value.trim();
-    if (!apiKey) { showVoiceError('Please paste your ElevenLabs API key above.'); return; }
     if (!lastScript) { showVoiceError('Generate a script first.'); return; }
     const section = document.getElementById('voiceSection').value;
     const voiceId = document.getElementById('voiceId').value;
@@ -1113,12 +1108,12 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     hideVoiceError();
     document.getElementById('audioWrap').classList.remove('visible');
     try {
-      const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
+      const res = await fetch('/api/voice', {
         method: 'POST',
-        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
-        body: JSON.stringify({ text: textToRead, model_id: 'eleven_monolingual_v1', voice_settings: { stability: 0.5, similarity_boost: 0.75 } })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToRead, voiceId: voiceId })
       });
-      if (!res.ok) { const e = await res.json().catch(function(){return {};}); throw new Error((e.detail && e.detail.message) || 'ElevenLabs error ' + res.status); }
+      if (!res.ok) { const e = await res.json().catch(function(){return {};}); throw new Error(e.error || 'Voice generation failed'); }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const player = document.getElementById('audioPlayer');
