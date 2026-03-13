@@ -810,7 +810,7 @@ List 8-10 relevant hashtags as a single line.
 Keep it energetic, specific, and optimized for ${platform} viewers. Do not add any other sections or commentary.`;
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
