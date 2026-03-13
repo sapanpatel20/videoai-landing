@@ -6,7 +6,11 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { text, voiceId = '21m00Tcm4TlvDq8ikWAM' } = req.body;
+  const { text, voiceId } = req.body;
+
+  if (!voiceId) {
+    return res.status(400).json({ error: 'No voice selected' });
+  }
 
   if (!text) {
     return res.status(400).json({ error: 'No text provided' });
