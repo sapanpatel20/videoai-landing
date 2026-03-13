@@ -1000,33 +1000,69 @@ Book a free consultation at leadai.guru"
     </div>
   </div>
 
-  <!-- Video Generation Card (Week 3) -->
+  <!-- Video Generation Card -->
   <div class="video-card" id="videoCard">
     <div class="video-header">
-      🎬 Step 3 — Generate Video with Stock Images
+      &#127910; Step 3 &mdash; Generate Caption Video
     </div>
     <div class="video-body">
 
-      <!-- Image search row -->
+      <!-- Background source tabs -->
       <div class="form-group">
-        <label for="imageSearch">Image theme <span style="opacity:0.45;font-size:0.7rem;">(auto-filled from your topic)</span></label>
-        <div style="display:flex;gap:0.75rem;">
-          <input type="text" id="imageSearch" class="field-box" list="searchHistory" placeholder="e.g. Dubai luxury apartment" style="flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.95rem;padding:0.75rem 1rem;outline:none;" />
-          <datalist id="searchHistory"></datalist>
-          <button onclick="fetchImages()" style="background:rgba(255,255,255,0.06);border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:0.85rem;padding:0.75rem 1rem;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">🔍 Search Images</button>
+        <label>Background source</label>
+        <div class="bg-source-tabs">
+          <button class="bg-tab active" id="bgtab-pexels"  onclick="switchBgSource('pexels')">&#128444; Pexels Stock</button>
+          <button class="bg-tab"        id="bgtab-upload"  onclick="switchBgSource('upload')">&#8679; Upload Files</button>
+          <button class="bg-tab"        id="bgtab-webcam"  onclick="switchBgSource('webcam')">&#127909; Webcam / Face</button>
         </div>
       </div>
 
-      <!-- Media picker -->
-      <div id="imagePicker" style="display:none;">
-        <!-- Tabs: Photos / Videos -->
-        <div style="display:flex;gap:0;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;padding:3px;margin-bottom:0.75rem;">
-          <button id="tabPhotos" onclick="switchMediaTab('photos')" style="flex:1;padding:0.45rem 0.75rem;border-radius:6px;border:none;font-family:var(--font-body);font-size:0.8rem;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--text);border:0.5px solid var(--border-hover);">🖼 Photos</button>
-          <button id="tabVideos" onclick="switchMediaTab('videos')" style="flex:1;padding:0.45rem 0.75rem;border-radius:6px;border:none;font-family:var(--font-body);font-size:0.8rem;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);">🎥 Videos</button>
+      <!-- PEXELS PANEL -->
+      <div class="bg-panel active" id="bgpanel-pexels">
+        <div style="display:flex;gap:0.75rem;">
+          <input type="text" id="imageSearch" class="field-box" list="searchHistory" placeholder="e.g. Dubai luxury apartment" style="flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.95rem;padding:0.75rem 1rem;outline:none;" />
+          <datalist id="searchHistory"></datalist>
+          <button onclick="fetchImages()" style="background:rgba(255,255,255,0.06);border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:0.85rem;padding:0.75rem 1rem;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">&#128269; Search</button>
         </div>
-        <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.6rem;" id="mediaPickerLabel">Select photos (tap to toggle)</div>
-        <div id="imageGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;"></div>
-        <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.5rem;">Media from <a href="https://pexels.com" target="_blank" style="color:var(--muted);">Pexels</a> — free to use</div>
+        <div id="imagePicker" style="display:none;margin-top:0.75rem;">
+          <div style="display:flex;gap:0;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;padding:3px;margin-bottom:0.75rem;">
+            <button id="tabPhotos" onclick="switchMediaTab('photos')" style="flex:1;padding:0.45rem 0.75rem;border-radius:6px;border:none;font-family:var(--font-body);font-size:0.8rem;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--text);border:0.5px solid var(--border-hover);">&#128444; Photos</button>
+            <button id="tabVideos" onclick="switchMediaTab('videos')" style="flex:1;padding:0.45rem 0.75rem;border-radius:6px;border:none;font-family:var(--font-body);font-size:0.8rem;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);">&#127909; Videos</button>
+          </div>
+          <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.6rem;" id="mediaPickerLabel">Select photos (tap to toggle)</div>
+          <div id="imageGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;"></div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.5rem;">Media from <a href="https://pexels.com" target="_blank" style="color:var(--muted);">Pexels</a> &mdash; free to use</div>
+        </div>
+      </div>
+
+      <!-- UPLOAD PANEL -->
+      <div class="bg-panel" id="bgpanel-upload">
+        <div class="upload-drop-zone" id="uploadDropZone" onclick="document.getElementById('fileUploadInput').click()">
+          <div style="font-size:2rem;margin-bottom:0.4rem;">&#8679;</div>
+          <div style="font-weight:600;margin-bottom:0.3rem;">Click to upload or drag &amp; drop</div>
+          <div style="font-size:0.82rem;color:var(--muted);line-height:1.5;">Images (JPG, PNG, WebP) or Videos (MP4, MOV, WebM)<br>Select multiple files &mdash; tap thumbnails below to toggle</div>
+        </div>
+        <input type="file" id="fileUploadInput" accept="image/*,video/*" multiple style="display:none;" onchange="handleFileUpload(this.files)" />
+        <div class="upload-grid" id="uploadGrid"></div>
+        <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.4rem;" id="uploadCount"></div>
+      </div>
+
+      <!-- WEBCAM PANEL -->
+      <div class="bg-panel" id="bgpanel-webcam">
+        <button class="btn-webcam primary" id="webcamStartBtn" onclick="startWebcam()" style="width:100%;margin-bottom:0.75rem;">&#127909; Start Camera</button>
+        <div id="webcamActiveArea" style="display:none;">
+          <div class="webcam-wrap">
+            <video id="webcamFeed" autoplay playsinline muted></video>
+          </div>
+          <div class="webcam-controls">
+            <button class="btn-webcam primary" onclick="snapPhoto()">&#128247; Snap Photo</button>
+            <button class="btn-webcam" id="recordBtn" onclick="toggleRecord()">&#9679; Record Clip</button>
+            <button class="btn-webcam" onclick="stopWebcam()">&#9632; Stop Camera</button>
+          </div>
+          <div class="webcam-status" id="webcamStatus">Camera ready &mdash; snap a photo or record a short clip.</div>
+        </div>
+        <div class="webcam-shots" id="webcamShots"></div>
+        <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.4rem;" id="webcamCount"></div>
       </div>
 
       <div class="style-grid">
