@@ -1379,7 +1379,12 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
       tabV.textContent = '🎥 Videos (' + allVideos.length + ')';
 
     } catch(err) {
-      showVideoError('Search failed: ' + err.message);
+      var msg = err.message || '';
+      if (msg.includes('PEXELS_API_KEY') || msg.includes('not set')) {
+        showVideoError('Add your free Pexels API key to Vercel → PEXELS_API_KEY to enable stock images. Video will still work with a plain background without it.');
+      } else {
+        showVideoError('Image search failed: ' + msg);
+      }
     } finally {
       btn.textContent = '🔍 Search Images';
       btn.disabled = false;
@@ -1634,12 +1639,12 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     var canvas = document.getElementById('captionCanvas');
     videoFrames = [];
 
-    // Auto-search images if none loaded yet
-    if (selectedImageUrls.length === 0) {
+    // Auto-search images if none loaded yet — skip silently if Pexels not configured
+    if (selectedImageUrls.length === 0 && selectedVideoUrls.length === 0) {
       var searchEl = document.getElementById('imageSearch');
-      if (searchEl.value.trim()) {
+      if (searchEl && searchEl.value.trim()) {
         progressLabel.textContent = 'Fetching stock images...';
-        await fetchImages();
+        try { await fetchImages(); } catch(e) { /* no Pexels key — use plain background */ }
       }
     }
 
