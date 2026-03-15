@@ -939,10 +939,10 @@ Book a free consultation at leadai.guru"
     </div>
   </div>
 
-  <!-- Voice Generation Card (Week 2) -->
+  <!-- Voice Generation Card — ElevenLabs -->
   <div class="voice-card" id="voiceCard">
     <div class="voice-header">
-      🎙 Step 2 — Text to Speech Voiceover
+      🎙 Step 2 — AI Voiceover <span style="font-size:0.7rem;font-weight:500;opacity:0.6;margin-left:0.5rem;">powered by ElevenLabs</span>
     </div>
     <div class="voice-body">
       <div class="voice-grid">
@@ -962,40 +962,28 @@ Book a free consultation at leadai.guru"
           </select>
         </div>
       </div>
-      <div class="voice-grid" style="margin-top:0;">
-        <div class="form-group">
-          <label for="voiceRate">Speed</label>
-          <select id="voiceRate">
-            <option value="0.8">Slow</option>
-            <option value="1" selected>Normal</option>
-            <option value="1.2">Fast</option>
-            <option value="1.5">Very Fast</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="voicePitch">Pitch</label>
-          <select id="voicePitch">
-            <option value="0.8">Low</option>
-            <option value="1" selected>Normal</option>
-            <option value="1.2">High</option>
-          </select>
-        </div>
-      </div>
+
       <button class="btn-voice" id="voiceBtn" onclick="generateVoice()">
-        🎙 Play Voiceover
+        🎙 Generate Voiceover
       </button>
       <button class="btn-voice" id="stopBtn" onclick="stopVoice()" style="display:none;background:rgba(255,80,80,0.1);border-color:rgba(255,80,80,0.3);color:rgba(255,80,80,0.9);">
         ⏹ Stop
       </button>
+
       <div class="voice-error" id="voiceError"></div>
+
+      <!-- Real audio player — shown after ElevenLabs returns MP3 -->
       <div class="audio-wrap" id="audioWrap">
         <div class="audio-label">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1.5s infinite;"></span>
-          <span id="voiceStatusText">Speaking your script...</span>
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1.5s infinite;" id="audioIndicator"></span>
+          <span id="voiceStatusText">Generating voiceover...</span>
         </div>
-        <div style="font-size:0.8rem;color:var(--muted);margin-top:0.25rem;">
-          💡 To record: use your phone's screen recorder, or a free tool like <strong style="color:var(--text);">Audacity</strong> to capture the audio while it plays.
-        </div>
+        <!-- Native audio player -->
+        <audio id="elAudio" controls style="width:100%;margin-top:0.75rem;border-radius:8px;accent-color:var(--accent);display:none;"></audio>
+        <!-- Download MP3 button -->
+        <button id="dlAudioBtn" onclick="downloadAudio()" style="display:none;margin-top:0.6rem;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.25);color:var(--accent);font-family:var(--font-body);font-size:0.8rem;font-weight:600;padding:0.45rem 1rem;border-radius:7px;cursor:pointer;">
+          ⬇ Download MP3
+        </button>
       </div>
     </div>
   </div>
@@ -1120,10 +1108,21 @@ Book a free consultation at leadai.guru"
         </div>
         <div class="video-controls">
           <button class="btn-play-preview" onclick="previewAnimation()">▶ Preview Animation</button>
-          <button class="btn-dl-video" onclick="downloadVideo()">⬇ Download Video</button>
+          <button class="btn-dl-video" onclick="downloadVideo()" id="dlVideoBtn">⬇ Download MP4</button>
+          <button class="btn-dl-video" onclick="downloadVideoWithAudio()" id="dlVideoAudioBtn"
+            style="display:none;background:rgba(0,229,160,0.08);border-color:rgba(0,229,160,0.3);color:var(--accent);">
+            🎬 Download MP4 + Voice
+          </button>
         </div>
-        <div class="video-note">
-          💡 Play the voiceover while screen-recording this preview for a complete video.
+        <!-- ffmpeg progress -->
+        <div id="ffmpegWrap" style="display:none;margin-top:0.75rem;">
+          <div style="height:3px;background:rgba(255,255,255,0.08);border-radius:100px;overflow:hidden;">
+            <div id="ffmpegBar" style="height:100%;background:var(--accent);border-radius:100px;width:0%;transition:width 0.3s;"></div>
+          </div>
+          <div id="ffmpegStatus" style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem;">Encoding...</div>
+        </div>
+        <div class="video-note" id="videoNote">
+          💡 Generate a voiceover above first, then use "Download MP4 + Voice" to merge them into one file.
         </div>
       </div>
     </div>
@@ -1410,64 +1409,85 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     if (e.key === 'Enter') generateScript();
   });
 
-  function generateVoice() {
+  // ── ElevenLabs voice state ──
+  var elAudioBlob = null;
+
+  async function generateVoice() {
     if (!lastScript) { showVoiceError('Generate or paste a script first.'); return; }
-    if (!window.speechSynthesis) { showVoiceError('Your browser does not support text-to-speech. Please use Chrome.'); return; }
+    var voiceId = document.getElementById('voiceId').value;
+    if (!voiceId) { showVoiceError('No voice selected. Loading voices — try again in a moment.'); return; }
 
     var section = document.getElementById('voiceSection').value;
-    var rate    = parseFloat(document.getElementById('voiceRate').value);
-    var pitch   = parseFloat(document.getElementById('voicePitch').value);
-    var voiceIndex = parseInt(document.getElementById('voiceId').value) || 0;
-
-    // Extract the right section using getScriptSection (already fixed)
     var textToRead = getScriptSection(section);
-    if (!textToRead) textToRead = lastScript.replace(/\[HOOK\]|\[BODY\]|\[CTA\]|\[CAPTION\]|\[HASHTAGS\]/gi, '').trim();
-
-    // Clean text — remove bracket tags
+    if (!textToRead) textToRead = lastScript;
     textToRead = textToRead.replace(/\[\w+\]/g, '').replace(/\s+/g, ' ').trim();
+    if (!textToRead) { showVoiceError('No text found for that section.'); return; }
 
     hideVoiceError();
-    window.speechSynthesis.cancel();
-
-    var utter = new SpeechSynthesisUtterance(textToRead);
-    utter.rate  = rate;
-    utter.pitch = pitch;
-
-    // Use selected voice
-    var voices = window.speechSynthesis.getVoices();
-    if (voices[voiceIndex]) utter.voice = voices[voiceIndex];
-
-    // UI states
     var btn  = document.getElementById('voiceBtn');
     var stop = document.getElementById('stopBtn');
-    btn.style.display  = 'none';
-    stop.style.display = 'flex';
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating voice...';
     document.getElementById('audioWrap').classList.add('visible');
-    document.getElementById('voiceStatusText').textContent = 'Speaking your script...';
+    document.getElementById('voiceStatusText').textContent = 'Sending to ElevenLabs...';
+    document.getElementById('audioIndicator').style.display = 'inline-block';
+    document.getElementById('elAudio').style.display = 'none';
+    document.getElementById('dlAudioBtn').style.display = 'none';
 
-    utter.onend = function() {
-      btn.style.display  = 'flex';
-      stop.style.display = 'none';
-      document.getElementById('voiceStatusText').textContent = 'Done! Use screen recorder to capture audio.';
+    try {
+      var res = await fetch('/api/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToRead, voiceId: voiceId })
+      });
+
+      if (!res.ok) {
+        var err = await res.json().catch(function(){ return {}; });
+        throw new Error(err.error || 'ElevenLabs error ' + res.status);
+      }
+
+      // Get the MP3 blob
+      var audioBuffer = await res.arrayBuffer();
+      elAudioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+      var audioUrl = URL.createObjectURL(elAudioBlob);
+
+      // Wire up the audio element
+      var audio = document.getElementById('elAudio');
+      audio.src = audioUrl;
+      audio.style.display = 'block';
+      audio.play();
+
+      document.getElementById('voiceStatusText').textContent = '✓ Voiceover ready — play above or download';
+      document.getElementById('audioIndicator').style.display = 'none';
+      document.getElementById('dlAudioBtn').style.display = 'inline-block';
+
+      // Show the video card once voice is ready
       document.getElementById('videoCard').classList.add('visible');
-    };
 
-    utter.onerror = function(e) {
-      btn.style.display  = 'flex';
-      stop.style.display = 'none';
-      showVoiceError('Speech error: ' + e.error);
-    };
+    } catch(err) {
+      showVoiceError('Voice error: ' + err.message + '. Check that ELEVENLABS_API_KEY is set in Vercel.');
+      document.getElementById('audioWrap').classList.remove('visible');
+    }
 
-    window.speechSynthesis.speak(utter);
+    btn.disabled = false;
+    btn.textContent = '🎙 Generate Voiceover';
+    stop.style.display = 'none';
   }
 
   function stopVoice() {
-    window.speechSynthesis.cancel();
-    var btn  = document.getElementById('voiceBtn');
-    var stop = document.getElementById('stopBtn');
-    btn.style.display  = 'flex';
-    stop.style.display = 'none';
+    var audio = document.getElementById('elAudio');
+    if (audio) { audio.pause(); audio.currentTime = 0; }
+    document.getElementById('voiceBtn').style.display = 'flex';
+    document.getElementById('stopBtn').style.display = 'none';
     document.getElementById('voiceStatusText').textContent = 'Stopped.';
+  }
+
+  function downloadAudio() {
+    if (!elAudioBlob) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(elAudioBlob);
+    a.download = 'leadai-voiceover.mp3';
+    a.click();
   }
 
   function showVoiceError(msg) {
@@ -2018,6 +2038,71 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     }
   }
 
+  // ══════════════════════════════════════════════════
+  // SCENE MATCHING — Claude splits script → Pexels
+  // ══════════════════════════════════════════════════
+  async function fetchSceneVideos(script, topic) {
+    // Ask Claude to break the script into 3 scenes with visual search terms
+    try {
+      var res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: 'scene breakdown',
+          platform: 'TikTok',
+          tone: 'professional',
+          duration: '30',
+          audience: 'general',
+          cta: '',
+          _custom_prompt: `You are a video director. Split this script into exactly 3 scenes for a short-form video.
+
+Script: ${script}
+Topic: ${topic || 'business'}
+
+Return ONLY valid JSON, no markdown:
+{"scenes":[
+  {"section":"HOOK","pexels_search":"2-4 word search term for background video. Be specific. e.g. 'luxury apartment interior', 'gym workout training'"},
+  {"section":"BODY","pexels_search":"2-4 word search term"},
+  {"section":"CTA","pexels_search":"2-4 word search term"}
+]}`
+        })
+      });
+      if (!res.ok) return null;
+      var data = await res.json();
+      var raw = (data.script || data.content?.[0]?.text || '').trim();
+      // Strip any markdown code fences
+      raw = raw.replace(/```json|```/g,'').trim();
+      var parsed = JSON.parse(raw);
+      return parsed.scenes || null;
+    } catch(e) {
+      console.warn('Scene breakdown failed, using single search:', e.message);
+      return null;
+    }
+  }
+
+  async function loadVideoForScene(searchTerm) {
+    try {
+      var res = await fetch('/api/images?query=' + encodeURIComponent(searchTerm) + '&per_page=3&type=videos');
+      if (!res.ok) return null;
+      var data = await res.json();
+      var vids = data.videos || [];
+      if (!vids.length) {
+        // fallback to photos
+        var photos = data.photos || [];
+        if (photos.length) {
+          var img = await loadImage(photos[0].url);
+          return { type: 'image', el: img };
+        }
+        return null;
+      }
+      var vid = await loadVideoElement(vids[0].url);
+      return { type: 'video', el: vid };
+    } catch(e) {
+      console.warn('Scene video load failed for "' + searchTerm + '":', e.message);
+      return null;
+    }
+  }
+
   async function generateVideo() {
     var btn = document.getElementById('videoBtn');
     try {
@@ -2059,34 +2144,53 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
         }
       }
 
-      // Load media elements — local (upload/webcam) takes priority over Pexels
+      // ── Scene-matched media OR manually selected ──
+      // Local upload / webcam takes top priority
       var mediaElements = [];
       var localSelected = getSelectedLocalMedia();
+
       if (localSelected.length > 0) {
         progressLabel.textContent = 'Using your uploaded/webcam media...';
-        // For videos, ensure they are playing
         for (var ii = 0; ii < localSelected.length; ii++) {
           var le = localSelected[ii];
-          if (le.type === 'video') {
-            try { await le.el.play(); } catch(e) {}
-          }
+          if (le.type === 'video') { try { await le.el.play(); } catch(e) {} }
           mediaElements.push({ type: le.type, el: le.el });
         }
-      } else if (selectedVideoUrls.length > 0) {
-        progressLabel.textContent = 'Loading background videos...';
-        for (var ii = 0; ii < selectedVideoUrls.length; ii++) {
-          try {
-            var vid = await loadVideoElement(selectedVideoUrls[ii]);
-            mediaElements.push({ type: 'video', el: vid });
-          } catch(e) { console.warn('Video load failed:', e); }
+
+      } else if (selectedVideoUrls.length > 0 || selectedImageUrls.length > 0) {
+        // Manually selected Pexels media
+        progressLabel.textContent = 'Loading selected media...';
+        if (selectedVideoUrls.length > 0) {
+          for (var ii = 0; ii < selectedVideoUrls.length; ii++) {
+            try { var v = await loadVideoElement(selectedVideoUrls[ii]); mediaElements.push({ type:'video', el:v }); } catch(e) {}
+          }
+        } else {
+          for (var ii = 0; ii < selectedImageUrls.length; ii++) {
+            try { var img = await loadImage(selectedImageUrls[ii]); mediaElements.push({ type:'image', el:img }); } catch(e) {}
+          }
         }
-      } else if (selectedImageUrls.length > 0) {
-        progressLabel.textContent = 'Loading background images...';
-        for (var ii = 0; ii < selectedImageUrls.length; ii++) {
-          try {
-            var img = await loadImage(selectedImageUrls[ii]);
-            mediaElements.push({ type: 'image', el: img });
-          } catch(e) { console.warn('Image load failed:', e); }
+
+      } else {
+        // ── AUTO scene matching — Claude + Pexels videos per scene ──
+        progressLabel.textContent = '🎬 Matching visuals to your script scenes...';
+        var topicVal = (document.getElementById('topicInput') || document.getElementById('topic'))?.value || '';
+        var scenes = await fetchSceneVideos(text, topicVal);
+
+        if (scenes && scenes.length) {
+          // 3 scene-specific videos
+          progressLabel.textContent = 'Loading scene-matched videos from Pexels...';
+          for (var si = 0; si < scenes.length; si++) {
+            var sceneMedia = await loadVideoForScene(scenes[si].pexels_search);
+            mediaElements.push(sceneMedia || null);
+          }
+          // Log scenes to console for debugging
+          console.log('Scene breakdown:', scenes);
+        } else {
+          // Fallback — single keyword search
+          var fallbackQ = topicVal || text.split(' ').slice(0,3).join(' ');
+          progressLabel.textContent = 'Fetching stock video...';
+          var sceneMedia = await loadVideoForScene(fallbackQ);
+          if (sceneMedia) mediaElements.push(sceneMedia);
         }
       }
 
@@ -2094,7 +2198,15 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
 
       for (var i = 0; i < chunks.length; i++) {
         var progress = (i + 1) / chunks.length;
-        var media = mediaElements.length > 0 ? mediaElements[i % mediaElements.length] : null;
+        // Scene-aware: if 3 media elements came from scene matching,
+        // split frames into thirds so HOOK/BODY/CTA each get matching visuals
+        var mediaIndex;
+        if (mediaElements.length === 3) {
+          mediaIndex = Math.min(Math.floor((i / chunks.length) * 3), 2);
+        } else {
+          mediaIndex = mediaElements.length > 0 ? i % mediaElements.length : -1;
+        }
+        var media = (mediaIndex >= 0 && mediaElements[mediaIndex]) ? mediaElements[mediaIndex] : null;
         var kenBurns = 1.0 + (0.08 * (i / Math.max(chunks.length - 1, 1)));
         videoFrames.push({ text: chunks[i], media: media, progress: progress, cap: capStyle, overlay: overlay, kenBurns: kenBurns });
         progressBar.style.width = Math.round(progress * 100) + '%';
@@ -2147,35 +2259,237 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     }, msPerFrame);
   }
 
-  function downloadVideo() {
-    if (!videoFrames.length) { showVideoError('Generate the video first.'); return; }
-    var canvas = document.getElementById('captionCanvas');
-    if (!window.MediaRecorder) { showVideoError('Try Chrome for video download.'); return; }
+  // ══════════════════════════════════════════════════
+  // MP4 EXPORT — ffmpeg-wasm (runs free in browser)
+  // ══════════════════════════════════════════════════
 
-    var btn = document.querySelector('.btn-dl-video');
-    btn.textContent = '⏳ Encoding...';
-
-    var stream = canvas.captureStream(1);
-    var rec = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
-    var chunks = [];
-    rec.ondataavailable = function(e){ if(e.data.size>0) chunks.push(e.data); };
-    rec.onstop = function(){
-      var blob = new Blob(chunks,{type:'video/webm'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href=url; a.download='leadai-video.webm'; a.click();
-      btn.textContent = '⬇ Download Video';
-    };
-    rec.start();
-    var i = 0;
-    function nextFrame() {
-      renderFrame(canvas, videoFrames[i]);
-      i++;
-      if(i < videoFrames.length){ setTimeout(nextFrame, 1000); }
-      else { rec.stop(); }
+  // Show the "Download MP4 + Voice" button once audio exists
+  var _origGenerateVoice = generateVoice;
+  generateVoice = async function() {
+    await _origGenerateVoice.apply(this, arguments);
+    // If audio was generated successfully, show the merge button
+    var audio = document.getElementById('elAudio');
+    if (audio && audio.src && audio.src !== window.location.href) {
+      document.getElementById('dlVideoAudioBtn').style.display = 'inline-flex';
+      document.getElementById('videoNote').textContent = '🎬 Click "Download MP4 + Voice" to get one merged video file.';
     }
-    nextFrame();
-    setTimeout(nextFrame, 1000);
+  };
+
+  // Load ffmpeg lazily — only when user clicks download
+  var ffmpegLoaded = false;
+  var ffmpegInstance = null;
+
+  async function loadFFmpeg() {
+    if (ffmpegLoaded) return ffmpegInstance;
+    var status = document.getElementById('ffmpegStatus');
+    if (status) status.textContent = 'Loading ffmpeg-wasm (first time ~5MB)...';
+
+    // Use ffmpeg-wasm 0.12 from CDN
+    var script1 = document.createElement('script');
+    script1.src = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js';
+    document.head.appendChild(script1);
+    await new Promise(function(res, rej){ script1.onload=res; script1.onerror=rej; });
+
+    var script2 = document.createElement('script');
+    script2.src = 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js';
+    document.head.appendChild(script2);
+    await new Promise(function(res, rej){ script2.onload=res; script2.onerror=rej; });
+
+    var ff = new FFmpeg();
+    ff.on('log', function(e){ console.log('[ffmpeg]', e.message); });
+    ff.on('progress', function(e){
+      var bar = document.getElementById('ffmpegBar');
+      var lbl = document.getElementById('ffmpegStatus');
+      if (bar) bar.style.width = Math.round(e.progress * 100) + '%';
+      if (lbl) lbl.textContent = 'Encoding... ' + Math.round(e.progress * 100) + '%';
+    });
+
+    await ff.load({
+      coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+    });
+
+    ffmpegLoaded = true;
+    ffmpegInstance = ff;
+    return ff;
+  }
+
+  // Render all frames to canvas and capture as PNG blobs at 30fps
+  async function captureFrames(fps) {
+    fps = fps || 30;
+    var canvas = document.getElementById('captionCanvas');
+    var frames = [];
+    var msPerFrame = 1000 / fps;
+    // Each videoFrame holds for 2 seconds = 2*fps render frames
+    var holdFrames = Math.round(fps * 2);
+
+    for (var fi = 0; fi < videoFrames.length; fi++) {
+      renderFrame(canvas, videoFrames[fi]);
+      // Give the canvas a tick to paint
+      await new Promise(function(r){ setTimeout(r, 4); });
+      var blob = await new Promise(function(r){ canvas.toBlob(r, 'image/png'); });
+      // Hold each caption frame for 2 seconds
+      for (var h = 0; h < holdFrames; h++) {
+        frames.push(blob);
+      }
+    }
+    return frames;
+  }
+
+  // Download video only (no audio) — proper MP4 via ffmpeg-wasm
+  async function downloadVideo() {
+    if (!videoFrames.length) { showVideoError('Generate the video first.'); return; }
+
+    var btn = document.getElementById('dlVideoBtn');
+    var wrap = document.getElementById('ffmpegWrap');
+    var bar  = document.getElementById('ffmpegBar');
+    var lbl  = document.getElementById('ffmpegStatus');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Preparing...';
+    wrap.style.display = 'block';
+    bar.style.width = '0%';
+
+    try {
+      var ff = await loadFFmpeg();
+      var { fetchFile } = FFmpegUtil;
+      var fps = 30;
+
+      lbl.textContent = 'Rendering frames...';
+      var frames = await captureFrames(fps);
+
+      // Write frames to ffmpeg virtual FS
+      lbl.textContent = 'Writing ' + frames.length + ' frames to encoder...';
+      for (var i = 0; i < frames.length; i++) {
+        var fname = 'frame' + String(i).padStart(5,'0') + '.png';
+        await ff.writeFile(fname, await fetchFile(frames[i]));
+        if (i % 20 === 0) {
+          bar.style.width = Math.round((i / frames.length) * 40) + '%';
+        }
+      }
+
+      bar.style.width = '45%';
+      lbl.textContent = 'Encoding MP4...';
+
+      // Encode to MP4 — h264, portrait 1080x1920
+      await ff.exec([
+        '-framerate', String(fps),
+        '-i', 'frame%05d.png',
+        '-c:v', 'libx264',
+        '-pix_fmt', 'yuv420p',
+        '-crf', '23',
+        '-movflags', '+faststart',
+        '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2',
+        'output.mp4'
+      ]);
+
+      bar.style.width = '90%';
+      lbl.textContent = 'Reading output...';
+
+      var data = await ff.readFile('output.mp4');
+      var blob = new Blob([data.buffer], { type: 'video/mp4' });
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href = url;
+      a.download = 'leadai-video.mp4';
+      a.click();
+
+      bar.style.width = '100%';
+      lbl.textContent = '✓ MP4 downloaded!';
+      setTimeout(function(){ wrap.style.display='none'; }, 3000);
+
+    } catch(err) {
+      showVideoError('MP4 export failed: ' + err.message);
+      console.error('ffmpeg error:', err);
+      wrap.style.display = 'none';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '⬇ Download MP4';
+  }
+
+  // Download video WITH audio merged — the real deal
+  async function downloadVideoWithAudio() {
+    if (!videoFrames.length) { showVideoError('Generate the video first.'); return; }
+
+    var audioEl = document.getElementById('elAudio');
+    if (!audioEl || !audioEl.src || audioEl.src === window.location.href) {
+      showVideoError('Generate a voiceover first — then use this button to merge them.');
+      return;
+    }
+
+    var btn  = document.getElementById('dlVideoAudioBtn');
+    var wrap = document.getElementById('ffmpegWrap');
+    var bar  = document.getElementById('ffmpegBar');
+    var lbl  = document.getElementById('ffmpegStatus');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Merging...';
+    wrap.style.display = 'block';
+    bar.style.width = '0%';
+
+    try {
+      var ff = await loadFFmpeg();
+      var { fetchFile } = FFmpegUtil;
+      var fps = 30;
+
+      lbl.textContent = 'Rendering frames...';
+      var frames = await captureFrames(fps);
+
+      lbl.textContent = 'Writing frames...';
+      for (var i = 0; i < frames.length; i++) {
+        var fname = 'frame' + String(i).padStart(5,'0') + '.png';
+        await ff.writeFile(fname, await fetchFile(frames[i]));
+        if (i % 20 === 0) bar.style.width = Math.round((i / frames.length) * 35) + '%';
+      }
+
+      // Fetch the ElevenLabs MP3 audio blob
+      bar.style.width = '38%';
+      lbl.textContent = 'Loading audio...';
+      var audioResp = await fetch(audioEl.src);
+      var audioBlob = await audioResp.blob();
+      await ff.writeFile('voice.mp3', await fetchFile(audioBlob));
+
+      bar.style.width = '45%';
+      lbl.textContent = 'Encoding MP4 + audio...';
+
+      // Encode video + audio together, trim to shortest
+      await ff.exec([
+        '-framerate', String(fps),
+        '-i', 'frame%05d.png',
+        '-i', 'voice.mp3',
+        '-c:v', 'libx264',
+        '-c:a', 'aac',
+        '-pix_fmt', 'yuv420p',
+        '-crf', '23',
+        '-movflags', '+faststart',
+        '-shortest',                        // trim to audio length
+        '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2',
+        'output_with_audio.mp4'
+      ]);
+
+      bar.style.width = '90%';
+      lbl.textContent = 'Packaging...';
+
+      var data = await ff.readFile('output_with_audio.mp4');
+      var blob = new Blob([data.buffer], { type: 'video/mp4' });
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href = url;
+      a.download = 'leadai-video-with-voice.mp4';
+      a.click();
+
+      bar.style.width = '100%';
+      lbl.textContent = '✓ Video + Voice downloaded!';
+      setTimeout(function(){ wrap.style.display='none'; }, 3000);
+
+    } catch(err) {
+      showVideoError('Merge failed: ' + err.message);
+      console.error('ffmpeg merge error:', err);
+      wrap.style.display = 'none';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🎬 Download MP4 + Voice';
   }
 
   function showVideoError(msg) {
@@ -2189,32 +2503,34 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   }
 
 
-  // ── Load browser built-in voices ──
-  function loadVoices() {
+  // ── Load ElevenLabs voices from /api/voices ──
+  async function loadVoices() {
     var select = document.getElementById('voiceId');
-    var voices = window.speechSynthesis.getVoices();
-    if (!voices.length) return;
-    select.innerHTML = '';
-    voices.forEach(function(v, i) {
-      var opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = v.name + (v.lang ? ' (' + v.lang + ')' : '');
-      // Default to first English voice
-      if (v.lang && v.lang.startsWith('en') && !select.querySelector('[data-default]')) {
-        opt.selected = true;
-        opt.setAttribute('data-default', '1');
+    try {
+      var res = await fetch('/api/voices');
+      if (!res.ok) throw new Error('voices API returned ' + res.status);
+      var data = await res.json();
+      if (!data.voices || !data.voices.length) throw new Error('No voices returned');
+      select.innerHTML = '';
+      // Group by category
+      var premade = data.voices.filter(function(v){ return v.category === 'premade'; });
+      var cloned  = data.voices.filter(function(v){ return v.category !== 'premade'; });
+      if (premade.length) {
+        var grp = document.createElement('optgroup'); grp.label = 'Premade Voices';
+        premade.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; grp.appendChild(o); });
+        select.appendChild(grp);
       }
-      select.appendChild(opt);
-    });
-    if (!select.options.length) {
-      select.innerHTML = '<option value="0">Default Voice</option>';
+      if (cloned.length) {
+        var grp2 = document.createElement('optgroup'); grp2.label = 'Your Voices';
+        cloned.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; grp2.appendChild(o); });
+        select.appendChild(grp2);
+      }
+    } catch(err) {
+      select.innerHTML = '<option value="">⚠ Could not load voices — check ELEVENLABS_API_KEY in Vercel</option>';
+      console.warn('loadVoices error:', err.message);
     }
   }
-  // Voices load async in some browsers
-  if (window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }
-  setTimeout(loadVoices, 200);
+  loadVoices();
   updateUsageUI(getUsage().count);
 
   // ── Search history for image search ──
