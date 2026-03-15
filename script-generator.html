@@ -441,8 +441,32 @@
     .week-badge.w3 { background: rgba(255,180,0,0.1); color: #FFB400; border: 0.5px solid rgba(255,180,0,0.2); }
     .week-badge.w4 { background: rgba(200,100,255,0.1); color: #C864FF; border: 0.5px solid rgba(200,100,255,0.2); }
 
-    /* ── Voice card ── */
-    .voice-card {
+    /* ── Voice provider chips ── */
+    .provider-chip {
+      padding: 0.4rem 0.9rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .provider-chip:hover { border-color: var(--border-hover); color: var(--text); }
+    .provider-chip.selected {
+      background: rgba(0,229,160,0.1);
+      border-color: rgba(0,229,160,0.35);
+      color: var(--accent);
+    }
+    /* Mic button active state */
+    #micBtn.listening {
+      background: rgba(255,60,60,0.15);
+      border-color: rgba(255,60,60,0.4);
+      color: rgba(255,80,80,0.9);
+      animation: pulse 1s ease infinite;
+    }
       background: var(--surface);
       border: 0.5px solid var(--border);
       border-radius: 16px;
@@ -815,8 +839,14 @@
     <div class="card-title"><div class="card-title-dot"></div> Video Details</div>
     <div class="form-grid">
       <div class="form-group full">
-        <label for="topic">Topic / Product</label>
-        <input type="text" id="topic" placeholder="e.g. Dubai property investment under $500K" />
+        <label for="topic">Topic / Product
+          <span id="micStatus" style="font-weight:400;font-size:0.7rem;margin-left:0.5rem;opacity:0;transition:opacity .3s;color:var(--accent);">● listening...</span>
+        </label>
+        <div style="position:relative;display:flex;gap:0.5rem;align-items:center;">
+          <input type="text" id="topic" placeholder="e.g. Dubai property investment under $500K" style="flex:1;" />
+          <button id="micBtn" onclick="toggleMic()" title="Speak your topic" style="flex-shrink:0;width:42px;height:42px;border-radius:9px;border:1px solid var(--border-hover);background:rgba(255,255,255,0.04);color:var(--muted);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;">🎤</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.3rem;">💡 Click 🎤 and speak your topic — it types itself</div>
       </div>
 
       <div class="form-group">
@@ -939,12 +969,29 @@ Book a free consultation at leadai.guru"
     </div>
   </div>
 
-  <!-- Voice Generation Card — ElevenLabs -->
+  <!-- Voice Generation Card — multi-provider -->
   <div class="voice-card" id="voiceCard">
     <div class="voice-header">
-      🎙 Step 2 — AI Voiceover <span style="font-size:0.7rem;font-weight:500;opacity:0.6;margin-left:0.5rem;">powered by ElevenLabs</span>
+      🎙 Step 2 — AI Voiceover <span style="font-size:0.7rem;font-weight:500;opacity:0.6;margin-left:0.5rem;">choose your voice engine</span>
     </div>
     <div class="voice-body">
+
+      <!-- Provider selector -->
+      <div style="margin-bottom:1rem;">
+        <label style="font-size:0.72rem;font-weight:600;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;display:block;margin-bottom:0.5rem;">Voice Engine</label>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="providerChips">
+          <button class="provider-chip selected" data-provider="openai" onclick="selectProvider(this)">
+            OpenAI TTS <span style="opacity:0.55;font-size:0.68rem;">~$0.001/video · great quality</span>
+          </button>
+          <button class="provider-chip" data-provider="elevenlabs" onclick="selectProvider(this)">
+            ElevenLabs <span style="opacity:0.55;font-size:0.68rem;">premium · most natural</span>
+          </button>
+          <button class="provider-chip" data-provider="browser" onclick="selectProvider(this)">
+            Browser (free) <span style="opacity:0.55;font-size:0.68rem;">no cost · basic quality</span>
+          </button>
+        </div>
+      </div>
+
       <div class="voice-grid">
         <div class="form-group">
           <label for="voiceId">Voice</label>
@@ -972,15 +1019,12 @@ Book a free consultation at leadai.guru"
 
       <div class="voice-error" id="voiceError"></div>
 
-      <!-- Real audio player — shown after ElevenLabs returns MP3 -->
       <div class="audio-wrap" id="audioWrap">
         <div class="audio-label">
           <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1.5s infinite;" id="audioIndicator"></span>
           <span id="voiceStatusText">Generating voiceover...</span>
         </div>
-        <!-- Native audio player -->
         <audio id="elAudio" controls style="width:100%;margin-top:0.75rem;border-radius:8px;accent-color:var(--accent);display:none;"></audio>
-        <!-- Download MP3 button -->
         <button id="dlAudioBtn" onclick="downloadAudio()" style="display:none;margin-top:0.6rem;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.25);color:var(--accent);font-family:var(--font-body);font-size:0.8rem;font-weight:600;padding:0.45rem 1rem;border-radius:7px;cursor:pointer;">
           ⬇ Download MP3
         </button>
@@ -1409,10 +1453,275 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     if (e.key === 'Enter') generateScript();
   });
 
-  // ── ElevenLabs voice state ──
+  // ══════════════════════════════════════════════════
+  // VOICE PROVIDER STATE
+  // ══════════════════════════════════════════════════
+  var currentProvider = 'openai';
   var elAudioBlob = null;
 
+  function selectProvider(el) {
+    document.querySelectorAll('.provider-chip').forEach(function(c){ c.classList.remove('selected'); });
+    el.classList.add('selected');
+    currentProvider = el.dataset.provider;
+    loadVoices();
+  }
+
+  // ══════════════════════════════════════════════════
+  // LOAD VOICES — switches per provider
+  // ══════════════════════════════════════════════════
+  async function loadVoices() {
+    var select = document.getElementById('voiceId');
+    select.innerHTML = '<option value="">Loading...</option>';
+
+    if (currentProvider === 'browser') {
+      // Browser Web Speech API voices
+      var voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      if (!voices.length) {
+        await new Promise(function(r){ setTimeout(r, 300); });
+        voices = window.speechSynthesis.getVoices();
+      }
+      select.innerHTML = '';
+      voices.filter(function(v){ return v.lang && v.lang.startsWith('en'); })
+        .forEach(function(v, i) {
+          var o = document.createElement('option');
+          o.value = 'browser_' + i;
+          o.textContent = v.name + ' (' + v.lang + ')';
+          select.appendChild(o);
+        });
+      if (!select.options.length) select.innerHTML = '<option value="browser_0">Default voice</option>';
+      return;
+    }
+
+    if (currentProvider === 'openai') {
+      // OpenAI TTS voices — hardcoded, no API call needed
+      var openaiVoices = [
+        { id:'alloy',   name:'Alloy — neutral, versatile' },
+        { id:'echo',    name:'Echo — male, clear' },
+        { id:'fable',   name:'Fable — expressive, storytelling' },
+        { id:'nova',    name:'Nova — female, energetic' },
+        { id:'onyx',    name:'Onyx — male, deep, authoritative' },
+        { id:'shimmer', name:'Shimmer — female, warm, friendly' },
+        { id:'coral',   name:'Coral — warm, conversational' },
+        { id:'ash',     name:'Ash — gentle, calm' },
+        { id:'sage',    name:'Sage — professional, clear' },
+      ];
+      select.innerHTML = '';
+      openaiVoices.forEach(function(v){
+        var o = document.createElement('option');
+        o.value = v.id;
+        o.textContent = v.name;
+        select.appendChild(o);
+      });
+      // Default to onyx (deep male — great for business content)
+      select.value = 'onyx';
+      return;
+    }
+
+    if (currentProvider === 'elevenlabs') {
+      try {
+        var res = await fetch('/api/voices');
+        if (!res.ok) throw new Error('voices API ' + res.status);
+        var data = await res.json();
+        if (!data.voices || !data.voices.length) throw new Error('no voices');
+        select.innerHTML = '';
+        var premade = data.voices.filter(function(v){ return v.category === 'premade'; });
+        var cloned  = data.voices.filter(function(v){ return v.category !== 'premade'; });
+        if (premade.length) {
+          var g1 = document.createElement('optgroup'); g1.label = 'Premade Voices';
+          premade.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; g1.appendChild(o); });
+          select.appendChild(g1);
+        }
+        if (cloned.length) {
+          var g2 = document.createElement('optgroup'); g2.label = 'Your Cloned Voices';
+          cloned.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; g2.appendChild(o); });
+          select.appendChild(g2);
+        }
+      } catch(err) {
+        select.innerHTML = '<option value="">⚠ Check ELEVENLABS_API_KEY in Vercel</option>';
+      }
+    }
+  }
+
+  // ══════════════════════════════════════════════════
+  // GENERATE VOICE — routes to correct provider
+  // ══════════════════════════════════════════════════
   async function generateVoice() {
+    if (!lastScript) { showVoiceError('Generate or paste a script first.'); return; }
+
+    var section = document.getElementById('voiceSection').value;
+    var textToRead = getScriptSection(section) || lastScript;
+    textToRead = textToRead.replace(/\[\w+\]/g, '').replace(/\s+/g, ' ').trim();
+    if (!textToRead) { showVoiceError('No text found for that section.'); return; }
+
+    hideVoiceError();
+    var btn = document.getElementById('voiceBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+    document.getElementById('audioWrap').classList.add('visible');
+    document.getElementById('audioIndicator').style.display = 'inline-block';
+    document.getElementById('elAudio').style.display = 'none';
+    document.getElementById('dlAudioBtn').style.display = 'none';
+
+    if (currentProvider === 'browser') {
+      // ── Browser Web Speech (free, no download) ──
+      if (!window.speechSynthesis) { showVoiceError('Browser TTS not supported. Try Chrome.'); btn.disabled=false; btn.textContent='🎙 Generate Voiceover'; return; }
+      window.speechSynthesis.cancel();
+      var utter = new SpeechSynthesisUtterance(textToRead);
+      var voiceVal = document.getElementById('voiceId').value;
+      if (voiceVal && voiceVal.startsWith('browser_')) {
+        var idx = parseInt(voiceVal.replace('browser_',''));
+        var voices = window.speechSynthesis.getVoices();
+        if (voices[idx]) utter.voice = voices[idx];
+      }
+      document.getElementById('voiceStatusText').textContent = '🔊 Playing via browser (free — no download available)';
+      utter.onend = function() {
+        btn.disabled=false; btn.textContent='🎙 Generate Voiceover';
+        document.getElementById('voiceStatusText').textContent = 'Done — upgrade to OpenAI or ElevenLabs to download MP3';
+        document.getElementById('videoCard').classList.add('visible');
+      };
+      utter.onerror = function(e) { showVoiceError('Browser speech error: ' + e.error); btn.disabled=false; btn.textContent='🎙 Generate Voiceover'; };
+      window.speechSynthesis.speak(utter);
+      return;
+    }
+
+    // ── API-based providers (OpenAI or ElevenLabs) ──
+    try {
+      var voiceId = document.getElementById('voiceId').value;
+      document.getElementById('voiceStatusText').textContent = 'Sending to ' + (currentProvider === 'openai' ? 'OpenAI TTS' : 'ElevenLabs') + '...';
+
+      var endpoint = currentProvider === 'openai' ? '/api/voice-openai' : '/api/voice';
+      var res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToRead, voiceId: voiceId })
+      });
+
+      if (!res.ok) {
+        var err = await res.json().catch(function(){ return {}; });
+        throw new Error(err.error || res.status + ' error from ' + currentProvider);
+      }
+
+      var audioBuffer = await res.arrayBuffer();
+      elAudioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+      var audioUrl = URL.createObjectURL(elAudioBlob);
+
+      var audio = document.getElementById('elAudio');
+      audio.src = audioUrl;
+      audio.style.display = 'block';
+      audio.play();
+
+      document.getElementById('voiceStatusText').textContent = '✓ Voiceover ready';
+      document.getElementById('audioIndicator').style.display = 'none';
+      document.getElementById('dlAudioBtn').style.display = 'inline-block';
+      document.getElementById('videoCard').classList.add('visible');
+
+      // Show the merge button
+      document.getElementById('dlVideoAudioBtn').style.display = 'inline-flex';
+      document.getElementById('videoNote').textContent = '🎬 Use "Download MP4 + Voice" to merge voice and video into one file.';
+
+    } catch(err) {
+      showVoiceError('Voice error: ' + err.message);
+      document.getElementById('audioWrap').classList.remove('visible');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🎙 Generate Voiceover';
+  }
+
+  function stopVoice() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    var audio = document.getElementById('elAudio');
+    if (audio) { audio.pause(); audio.currentTime = 0; }
+    document.getElementById('voiceBtn').style.display = 'flex';
+    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('voiceStatusText').textContent = 'Stopped.';
+  }
+
+  function downloadAudio() {
+    if (!elAudioBlob) return;
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(elAudioBlob);
+    a.download = 'leadai-voiceover.mp3';
+    a.click();
+  }
+
+  // ══════════════════════════════════════════════════
+  // TALK TO TYPE — mic input for topic field
+  // ══════════════════════════════════════════════════
+  var micRecognition = null;
+  var micActive = false;
+
+  function toggleMic() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (micActive) {
+      stopMic();
+      return;
+    }
+
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    micRecognition = new SpeechRecognition();
+    micRecognition.continuous = false;
+    micRecognition.interimResults = true;
+    micRecognition.lang = 'en-US';
+
+    var topicInput = document.getElementById('topic');
+    var micBtn = document.getElementById('micBtn');
+    var micStatus = document.getElementById('micStatus');
+    var originalValue = topicInput.value;
+
+    micRecognition.onstart = function() {
+      micActive = true;
+      micBtn.classList.add('listening');
+      micBtn.innerHTML = '🔴';
+      micStatus.style.opacity = '1';
+    };
+
+    micRecognition.onresult = function(e) {
+      var interim = '';
+      var final = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      // Show live transcript in the input
+      topicInput.value = (originalValue ? originalValue + ' ' : '') + (final || interim);
+    };
+
+    micRecognition.onend = function() {
+      stopMic();
+      // Auto-focus the topic field so user can edit
+      topicInput.focus();
+    };
+
+    micRecognition.onerror = function(e) {
+      stopMic();
+      if (e.error !== 'aborted') {
+        alert('Mic error: ' + e.error + '. Make sure you allow microphone access.');
+      }
+    };
+
+    micRecognition.start();
+  }
+
+  function stopMic() {
+    micActive = false;
+    var micBtn = document.getElementById('micBtn');
+    var micStatus = document.getElementById('micStatus');
+    micBtn.classList.remove('listening');
+    micBtn.innerHTML = '🎤';
+    micStatus.style.opacity = '0';
+    if (micRecognition) {
+      try { micRecognition.stop(); } catch(e) {}
+      micRecognition = null;
+    }
+  }
     if (!lastScript) { showVoiceError('Generate or paste a script first.'); return; }
     var voiceId = document.getElementById('voiceId').value;
     if (!voiceId) { showVoiceError('No voice selected. Loading voices — try again in a moment.'); return; }
@@ -2503,32 +2812,9 @@ Return ONLY valid JSON, no markdown:
   }
 
 
-  // ── Load ElevenLabs voices from /api/voices ──
-  async function loadVoices() {
-    var select = document.getElementById('voiceId');
-    try {
-      var res = await fetch('/api/voices');
-      if (!res.ok) throw new Error('voices API returned ' + res.status);
-      var data = await res.json();
-      if (!data.voices || !data.voices.length) throw new Error('No voices returned');
-      select.innerHTML = '';
-      // Group by category
-      var premade = data.voices.filter(function(v){ return v.category === 'premade'; });
-      var cloned  = data.voices.filter(function(v){ return v.category !== 'premade'; });
-      if (premade.length) {
-        var grp = document.createElement('optgroup'); grp.label = 'Premade Voices';
-        premade.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; grp.appendChild(o); });
-        select.appendChild(grp);
-      }
-      if (cloned.length) {
-        var grp2 = document.createElement('optgroup'); grp2.label = 'Your Voices';
-        cloned.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; grp2.appendChild(o); });
-        select.appendChild(grp2);
-      }
-    } catch(err) {
-      select.innerHTML = '<option value="">⚠ Could not load voices — check ELEVENLABS_API_KEY in Vercel</option>';
-      console.warn('loadVoices error:', err.message);
-    }
+  // ── Init voices on page load ──
+  if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = function(){ if(currentProvider==='browser') loadVoices(); };
   }
   loadVoices();
   updateUsageUI(getUsage().count);
