@@ -1627,7 +1627,17 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     btn.disabled = false;
     btn.textContent = '🎙 Generate Voiceover';
   }
+function showVoiceError(msg) {
+    var box = document.getElementById('voiceError');
+    if (!box) return;
+    box.textContent = '\u26a0 ' + msg;
+    box.classList.add('visible');
+  }
 
+  function hideVoiceError() {
+    var box = document.getElementById('voiceError');
+    if (box) box.classList.remove('visible');
+  }
   function stopVoice() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     var audio = document.getElementById('elAudio');
