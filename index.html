@@ -492,6 +492,7 @@
           </article>
           <article class="step">
             <b>Step 3</b>
+            await ensureFFmpegLoaded();
             <h3>Export your video</h3>
             <p>Generate a captioned vertical video for TikTok, Reels, and Shorts, then post.</p>
           </article>
@@ -663,5 +664,18 @@
       });
     });
   </script>
+  
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"></script>
+<script>
+  const { createFFmpeg, fetchFile } = FFmpeg;
+  const ffmpeg = createFFmpeg({
+    log: true,
+    corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"
+  });
+
+  async function ensureFFmpegLoaded() {
+    if (!ffmpeg.isLoaded()) await ffmpeg.load();
+  }
+</script>
 </body>
 </html>
