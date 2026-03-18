@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LeadAI | Turn One Idea Into a Lead Video in 30 Seconds</title>
-  <meta name="description" content="LeadAI helps businesses generate scripts, voiceovers, and short-form lead videos in minutes for TikTok, Reels, and Shorts." />
+  <title>LeadAI | Text -> Image -> Video in Seconds</title>
+  <meta name="description" content="LeadAI helps businesses turn text into images and images into short lead videos with captions and voiceover." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://www.leadai.guru/index.html" />
 
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.leadai.guru/index.html" />
-  <meta property="og:title" content="LeadAI | Turn One Idea Into a Lead Video in 30 Seconds" />
-  <meta property="og:description" content="Generate script, voiceover, and captioned short video from one prompt. Built for local businesses, creators, and agencies." />
+  <meta property="og:title" content="LeadAI | Text -> Image -> Video in Seconds" />
+  <meta property="og:description" content="Generate script, visuals, voiceover, and short-form lead videos from one prompt." />
   <meta property="og:image" content="https://www.leadai.guru/assets/og-home.jpg" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="LeadAI | Turn One Idea Into a Lead Video in 30 Seconds" />
-  <meta name="twitter:description" content="Generate script, voiceover, and captioned short video from one prompt." />
+  <meta name="twitter:title" content="LeadAI | Text -> Image -> Video in Seconds" />
+  <meta name="twitter:description" content="Generate script, visuals, voiceover, and short-form lead videos from one prompt." />
   <meta name="twitter:image" content="https://www.leadai.guru/assets/og-home.jpg" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,45 +27,46 @@
     :root {
       --bg: #080c15;
       --bg-soft: #101727;
-      --surface: #151f33;
       --line: #28344d;
       --text: #edf2ff;
       --muted: #a6b3cc;
       --brand: #00d97e;
       --brand-2: #00b86c;
-      --white: #ffffff;
       --radius: 14px;
       --max: 1120px;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { scroll-behavior: smooth; }
     body {
       font-family: "Instrument Sans", sans-serif;
       background: radial-gradient(circle at 70% -20%, #123222 0%, var(--bg) 45%);
       color: var(--text);
       line-height: 1.6;
     }
-    a { color: inherit; text-decoration: none; }
+
+    a { text-decoration: none; color: inherit; }
     img { max-width: 100%; display: block; }
 
     .container { width: min(var(--max), 92%); margin: 0 auto; }
-    .section { padding: 76px 0; }
+    .section { padding: 72px 0; }
+
     .tag {
       display: inline-block;
       font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: .08em;
       color: var(--brand);
-      border: 1px solid rgba(0, 217, 126, 0.35);
+      border: 1px solid rgba(0,217,126,.35);
       border-radius: 999px;
       padding: 6px 12px;
-      margin-bottom: 16px;
-      background: rgba(0, 217, 126, 0.08);
+      margin-bottom: 14px;
+      background: rgba(0,217,126,.08);
     }
-    h1, h2, h3 { font-family: "Syne", sans-serif; line-height: 1.08; letter-spacing: -0.03em; }
-    h1 { font-size: clamp(2rem, 5vw, 4.4rem); margin-bottom: 16px; }
-    h2 { font-size: clamp(1.6rem, 3.2vw, 2.7rem); margin-bottom: 14px; }
-    p.lead { max-width: 66ch; color: var(--muted); }
+
+    h1,h2,h3 { font-family: "Syne", sans-serif; line-height: 1.08; letter-spacing: -.03em; }
+    h1 { font-size: clamp(2rem, 5vw, 4.1rem); margin-bottom: 14px; }
+    h2 { font-size: clamp(1.6rem, 3.2vw, 2.5rem); margin-bottom: 12px; }
+    .lead { color: var(--muted); max-width: 64ch; }
 
     .btn {
       display: inline-flex;
@@ -75,17 +76,14 @@
       padding: 12px 18px;
       font-weight: 700;
       border: 1px solid transparent;
-      transition: 0.2s ease;
+      transition: .2s ease;
     }
-    .btn-primary {
-      background: var(--brand);
-      color: #07120d;
-    }
-    .btn-primary:hover { transform: translateY(-1px); background: var(--brand-2); }
+    .btn-primary { background: var(--brand); color: #07120d; }
+    .btn-primary:hover { background: var(--brand-2); transform: translateY(-1px); }
     .btn-ghost {
       border-color: var(--line);
       color: var(--text);
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255,255,255,.02);
     }
     .btn-ghost:hover { border-color: #3a4b6c; }
 
@@ -95,46 +93,42 @@
       z-index: 20;
       backdrop-filter: blur(10px);
       background: rgba(8, 12, 21, 0.72);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
     .nav {
       min-height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 24px;
+      gap: 22px;
     }
-    .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 1.3rem; }
+    .logo { font-family: "Syne", sans-serif; font-weight: 800; font-size: 1.28rem; }
     .logo span { color: var(--brand); }
-    .nav-links { display: flex; gap: 18px; font-size: 0.95rem; color: var(--muted); }
+    .nav-links { display: flex; gap: 16px; color: var(--muted); font-size: .95rem; }
     .nav-links a:hover { color: var(--text); }
     .nav-right { display: flex; gap: 10px; }
 
     .hero-wrap {
       display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 26px;
+      grid-template-columns: 1.04fr .96fr;
+      gap: 24px;
       align-items: center;
-      padding-top: 56px;
+      padding-top: 54px;
     }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
-    .hero-trust { margin-top: 14px; font-size: 0.9rem; color: var(--muted); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .hero-trust { margin-top: 12px; color: var(--muted); font-size: .9rem; }
+
     .hero-card {
       border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-      border-radius: 18px;
-      padding: 16px;
-    }
-    .hero-demo-top {
-      font-size: 0.86rem;
-      color: var(--muted);
-      margin-bottom: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border-radius: 16px;
+      padding: 14px;
     }
     .hero-demo-box {
       background: #0d1423;
       border: 1px solid #26324a;
       border-radius: 12px;
-      padding: 14px;
+      padding: 13px;
       display: grid;
       gap: 10px;
     }
@@ -143,73 +137,79 @@
       background: #121a2b;
       color: #d7e4ff;
       border-radius: 10px;
-      padding: 11px;
-      font-size: 0.95rem;
+      padding: 10px;
+      font-size: .95rem;
     }
     .hero-demo-status {
-      font-size: 0.88rem;
       color: #9cd8bb;
-      background: rgba(0, 217, 126, 0.08);
-      border: 1px solid rgba(0, 217, 126, 0.28);
+      font-size: .88rem;
+      background: rgba(0,217,126,.08);
+      border: 1px solid rgba(0,217,126,.28);
       border-radius: 8px;
       padding: 8px;
     }
 
     .template-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 24px;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 20px;
     }
     .template {
       background: var(--bg-soft);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 14px;
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
-    .template h3 { font-size: 1.05rem; }
-    .template p { font-size: 0.9rem; color: var(--muted); }
+    .template p { color: var(--muted); font-size: .9rem; }
     .template a {
-      font-size: 0.88rem;
-      color: #0f251d;
-      background: #89f3be;
+      width: fit-content;
       padding: 8px 10px;
       border-radius: 8px;
+      background: #89f3be;
+      color: #0f251d;
       font-weight: 700;
-      width: fit-content;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 24px;
-    }
-    .step {
-      background: #fff;
-      color: #111827;
-      border-radius: var(--radius);
-      border: 1px solid #dbe3f0;
-      padding: 18px;
-    }
-    .step b {
-      display: inline-block;
-      font-size: 0.8rem;
-      color: #047857;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-size: .86rem;
     }
 
     .light { background: #f8fbff; color: #101828; }
-    .light p.lead { color: #475467; }
+    .light .lead { color: #475467; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .step {
+      background: #fff;
+      border: 1px solid #dbe3f0;
+      border-radius: var(--radius);
+      padding: 16px;
+      color: #111827;
+    }
+    .step b {
+      font-size: .78rem;
+      color: #047857;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .mode-box {
+      margin-top: 20px;
+      border: 1px solid rgba(0,217,126,.35);
+      border-radius: 14px;
+      padding: 18px;
+      background: linear-gradient(130deg, rgba(0,217,126,.11), rgba(0,217,126,.04));
+    }
+
     .case-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 24px;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 20px;
     }
     .case {
       background: #fff;
@@ -217,54 +217,26 @@
       border-radius: var(--radius);
       overflow: hidden;
     }
-    .case-preview {
-      aspect-ratio: 16 / 10;
-      background: linear-gradient(130deg, #10263a, #224f3c);
-    }
-    .case-body { padding: 14px; }
+    .case img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+    .case-body { padding: 12px; }
     .case small { color: #667085; display: block; margin-bottom: 8px; }
-    .case p { color: #344054; font-size: 0.93rem; }
-
-    .use-grid {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .use {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-      background: var(--bg-soft);
-      font-size: 0.9rem;
-    }
+    .case p { color: #344054; font-size: .92rem; }
 
     .pricing {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0,1fr));
       gap: 12px;
-      margin-top: 24px;
+      margin-top: 20px;
     }
     .plan {
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 14px;
       background: var(--bg-soft);
     }
-    .plan .price { font-size: 1.6rem; font-family: "Syne", sans-serif; }
-    .plan ul { margin-top: 10px; list-style: none; display: grid; gap: 6px; color: var(--muted); font-size: 0.9rem; }
-    .plan.pro { border-color: rgba(0, 217, 126, 0.5); box-shadow: 0 0 0 1px rgba(0, 217, 126, 0.2) inset; }
-    .badge {
-      font-size: 0.72rem;
-      color: #0f251d;
-      background: #89f3be;
-      border-radius: 999px;
-      padding: 5px 8px;
-      display: inline-block;
-      margin-bottom: 8px;
-      font-weight: 700;
-    }
+    .plan .price { font-family: "Syne", sans-serif; font-size: 1.55rem; }
+    .plan ul { list-style: none; margin-top: 8px; color: var(--muted); font-size: .9rem; display: grid; gap: 4px; }
+    .pro { border-color: rgba(0,217,126,.5); box-shadow: 0 0 0 1px rgba(0,217,126,.2) inset; }
 
     details {
       border: 1px solid #dbe3f0;
@@ -272,41 +244,40 @@
       background: #fff;
       padding: 12px 14px;
     }
-    details + details { margin-top: 10px; }
+    details + details { margin-top: 8px; }
     summary { cursor: pointer; font-weight: 600; }
-    details p { color: #475467; margin-top: 8px; }
+    details p { margin-top: 8px; color: #475467; }
 
     .cta {
-      border: 1px solid rgba(0, 217, 126, 0.35);
-      background: linear-gradient(130deg, rgba(0, 217, 126, 0.14), rgba(0, 217, 126, 0.05));
-      border-radius: 18px;
+      border: 1px solid rgba(0,217,126,.35);
+      border-radius: 16px;
       text-align: center;
-      padding: 44px 20px;
+      padding: 40px 18px;
+      background: linear-gradient(130deg, rgba(0,217,126,.14), rgba(0,217,126,.05));
     }
-    footer { border-top: 1px solid rgba(255, 255, 255, 0.08); color: var(--muted); }
+
+    footer {
+      border-top: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+    }
     .footer-inner {
-      min-height: 68px;
+      min-height: 66px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      font-size: 0.9rem;
+      gap: 10px;
+      font-size: .9rem;
     }
 
     @media (max-width: 980px) {
       .nav-links { display: none; }
       .hero-wrap { grid-template-columns: 1fr; }
       .template-grid, .steps, .case-grid { grid-template-columns: 1fr; }
-      .use-grid { grid-template-columns: repeat(2, 1fr); }
-      .pricing { grid-template-columns: repeat(2, 1fr); }
+      .pricing { grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
     @media (max-width: 640px) {
       .pricing { grid-template-columns: 1fr; }
       .nav-right a:first-child { display: none; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition: none !important; }
-      html, body { scroll-behavior: auto; }
     }
   </style>
 </head>
@@ -316,7 +287,7 @@
       <a class="logo" href="/index.html">Lead<span>AI</span></a>
       <nav class="nav-links" aria-label="Primary">
         <a href="#templates">Templates</a>
-        <a href="#how">How It Works</a>
+        <a href="#modes">Modes</a>
         <a href="#proof">Results</a>
         <a href="#pricing">Pricing</a>
         <a href="/script-generator.html">Create</a>
@@ -332,23 +303,23 @@
     <section class="section">
       <div class="container hero-wrap">
         <div>
-          <span class="tag">AI Video Generator for Local Businesses</span>
-          <h1>Turn one idea into a lead video in 30 seconds.</h1>
-          <p class="lead">LeadAI writes your script, generates voiceover, and builds a captioned short video for TikTok, Reels, and Shorts.</p>
+          <span class="tag">AI Video Generator</span>
+          <h1>Turn text into image-based lead videos in seconds.</h1>
+          <p class="lead">LeadAI turns your prompt into script, visuals, voiceover, and a publish-ready short video for TikTok, Reels, and Shorts.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="/script-generator.html" data-track="hero_start_free_click">Start Free</a>
-            <a class="btn btn-ghost" href="#proof">Watch 60s Demo</a>
+            <a class="btn btn-primary" href="/script-generator.html?mode=text-image-video" data-track="text_image_video_start">Try Text -> Image -> Video</a>
+            <a class="btn btn-ghost" href="/script-generator.html" data-track="classic_mode_start">Use Classic Mode</a>
           </div>
-          <p class="hero-trust">No card required. Fast generation. Built for agencies and solo founders.</p>
+          <p class="hero-trust">No card required • Fast generation • Built for agencies and local businesses</p>
         </div>
-        <aside class="hero-card" aria-label="LeadAI quick demo">
-          <p class="hero-demo-top">Live workflow preview</p>
+
+        <aside class="hero-card">
           <div class="hero-demo-box">
-            <input class="hero-demo-input" type="text" value="Create a real estate listing video for Dubai investors" aria-label="Prompt example" readonly />
-            <div class="hero-demo-status">Step 1: Script generated with Hook, Body, CTA</div>
-            <div class="hero-demo-status">Step 2: Voiceover generated (Australian, 30s)</div>
-            <div class="hero-demo-status">Step 3: Vertical video rendered with captions</div>
-            <a class="btn btn-primary" href="/script-generator.html" data-track="template_selected">Try this workflow</a>
+            <input class="hero-demo-input" type="text" value="Create a Dubai real estate video for investors" readonly />
+            <div class="hero-demo-status">Step 1: Prompt -> scene images</div>
+            <div class="hero-demo-status">Step 2: Voice + captions added</div>
+            <div class="hero-demo-status">Step 3: Final vertical video rendered</div>
+            <a class="btn btn-primary" href="/script-generator.html?mode=text-image-video" data-track="text_image_video_start">Start This Workflow</a>
           </div>
         </aside>
       </div>
@@ -357,39 +328,62 @@
     <section class="section" id="templates">
       <div class="container">
         <span class="tag">Templates</span>
-        <h2>Start with a proven template</h2>
-        <p class="lead">Pick a format, edit one prompt, and generate faster.</p>
+        <h2>Start fast with simple templates</h2>
+        <p class="lead">Reduced to 4 high-performing templates to keep onboarding clear.</p>
         <div class="template-grid">
-          <article class="template"><h3>Real Estate Listing Video</h3><p>New listing walkthrough with CTA for viewing request.</p><a href="/script-generator.html?template=real-estate">Use Template</a></article>
-          <article class="template"><h3>Gym Transformation Promo</h3><p>Before/after social ad with lead capture CTA.</p><a href="/script-generator.html?template=gym">Use Template</a></article>
-          <article class="template"><h3>Mortgage Tip Explainer</h3><p>Short educational video that drives consultation bookings.</p><a href="/script-generator.html?template=mortgage">Use Template</a></article>
-          <article class="template"><h3>Coach Testimonial</h3><p>Client story video with authority-building structure.</p><a href="/script-generator.html?template=coaching">Use Template</a></article>
-          <article class="template"><h3>Local Service Offer Ad</h3><p>Limited-time offer script optimized for local leads.</p><a href="/script-generator.html?template=service">Use Template</a></article>
-          <article class="template"><h3>Restaurant Daily Reel</h3><p>Menu spotlight and promo message for daily posting.</p><a href="/script-generator.html?template=restaurant">Use Template</a></article>
+          <article class="template">
+            <h3>Real Estate</h3>
+            <p>Listing and investor videos.</p>
+            <a href="/script-generator.html?template=real-estate&mode=text-image-video" data-track="template_selected">Use Template</a>
+          </article>
+          <article class="template">
+            <h3>Gym Promotion</h3>
+            <p>Challenge and offer campaigns.</p>
+            <a href="/script-generator.html?template=gym&mode=text-image-video" data-track="template_selected">Use Template</a>
+          </article>
+          <article class="template">
+            <h3>Mortgage Tips</h3>
+            <p>Educational lead videos.</p>
+            <a href="/script-generator.html?template=mortgage&mode=text-image-video" data-track="template_selected">Use Template</a>
+          </article>
+          <article class="template">
+            <h3>Local Services</h3>
+            <p>Offer ads for local businesses.</p>
+            <a href="/script-generator.html?template=service&mode=text-image-video" data-track="template_selected">Use Template</a>
+          </article>
         </div>
       </div>
     </section>
 
-    <section class="section light" id="how">
+    <section class="section light" id="modes">
       <div class="container">
-        <span class="tag">How It Works</span>
-        <h2>Three steps from idea to publish-ready video</h2>
+        <span class="tag">Modes</span>
+        <h2>Choose your generation flow</h2>
         <div class="steps">
           <article class="step">
-            <b>Step 1</b>
-            <h3>Describe your offer</h3>
-            <p>Enter topic, audience, tone, and platform. LeadAI writes your Hook, Body, and CTA script automatically.</p>
+            <b>Mode 1</b>
+            <h3>Text -> Image -> Video</h3>
+            <p>Best for faster visual storytelling from one prompt.</p>
           </article>
           <article class="step">
-            <b>Step 2</b>
-            <h3>Pick your voice</h3>
-            <p>Choose voice style, pace, and tone. Preview instantly and regenerate until it matches your brand.</p>
+            <b>Mode 2</b>
+            <h3>Script -> Voice -> Video</h3>
+            <p>Best when you want script control first.</p>
           </article>
           <article class="step">
-            <b>Step 3</b>
-            <h3>Export your video</h3>
-            <p>Generate a captioned vertical video for TikTok, Reels, and Shorts, then download and post.</p>
+            <b>Step Clarity</b>
+            <h3>Prompt, scenes, export</h3>
+            <p>Simple stepper reduces drop-off and speeds completion.</p>
           </article>
+        </div>
+
+        <div class="mode-box">
+          <h3 style="margin-bottom:8px;">New: Text -> Image -> Video</h3>
+          <p class="lead" style="margin-bottom:14px;">Describe your offer, generate scene images, then auto-build a captioned video with optional voiceover.</p>
+          <div class="hero-actions" style="margin-top:0;">
+            <a class="btn btn-primary" href="/script-generator.html?mode=text-image-video" data-track="text_image_video_start">Try New Mode</a>
+            <a class="btn btn-ghost" href="/script-generator.html" data-track="classic_mode_start">Classic Mode</a>
+          </div>
         </div>
       </div>
     </section>
@@ -399,44 +393,27 @@
         <span class="tag">Results</span>
         <h2>See real videos generated with LeadAI</h2>
         <div class="case-grid">
-  <article class="case">
-    <img src="/assets/case-real-estate.jpg" alt="Real estate lead video generated by LeadAI" />
-    <div class="case-body">
-      <small>Prompt: Luxury apartment launch, Dubai Marina</small>
-      <p>Generated in 34s. Outcome: 3.1x more listing inquiries in 2 weeks.</p>
-    </div>
-  </article>
-
-  <article class="case">
-    <img src="/assets/case-gym.jpg" alt="Gym promotion video generated by LeadAI" />
-    <div class="case-body">
-      <small>Prompt: 6-week challenge promo, local gym</small>
-      <p>Generated in 29s. Outcome: 47 new trial signups in one campaign.</p>
-    </div>
-  </article>
-
-  <article class="case">
-    <img src="/assets/case-mortgage.jpg" alt="Mortgage explainer video generated by LeadAI" />
-    <div class="case-body">
-      <small>Prompt: First-home buyer mortgage tips</small>
-      <p>Generated in 36s. Outcome: 2.4x consultation bookings.</p>
-    </div>
-  </article>
-</div>
-      </div>
-    </section>
-
-    <section class="section" id="use-cases">
-      <div class="container">
-        <span class="tag">Use Cases</span>
-        <h2>Built for businesses that need leads fast</h2>
-        <div class="use-grid">
-          <div class="use">Real Estate</div>
-          <div class="use">Fitness</div>
-          <div class="use">Mortgage</div>
-          <div class="use">Coaching</div>
-          <div class="use">Agencies</div>
-          <div class="use">E-commerce</div>
+          <article class="case">
+            <img src="/assets/case-real-estate.jpg" alt="Real estate lead video generated by LeadAI" />
+            <div class="case-body">
+              <small>Prompt: Luxury apartment launch, Dubai Marina</small>
+              <p>Generated in 34s. Outcome: 3.1x more listing inquiries in 2 weeks.</p>
+            </div>
+          </article>
+          <article class="case">
+            <img src="/assets/case-gym.jpg" alt="Gym promotion video generated by LeadAI" />
+            <div class="case-body">
+              <small>Prompt: 6-week challenge promo, local gym</small>
+              <p>Generated in 29s. Outcome: 47 new trial signups in one campaign.</p>
+            </div>
+          </article>
+          <article class="case">
+            <img src="/assets/case-mortgage.jpg" alt="Mortgage explainer video generated by LeadAI" />
+            <div class="case-body">
+              <small>Prompt: First-home buyer mortgage tips</small>
+              <p>Generated in 36s. Outcome: 2.4x consultation bookings.</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -449,23 +426,22 @@
           <article class="plan">
             <h3>Free</h3>
             <p class="price">$0</p>
-            <ul><li>3 videos per month</li><li>Standard voices</li><li>Watermarked export</li></ul>
+            <ul><li>3 videos/month</li><li>Standard voices</li><li>Watermark export</li></ul>
           </article>
           <article class="plan">
             <h3>Starter</h3>
             <p class="price">$19/mo</p>
-            <ul><li>10 videos per month</li><li>Single platform preset</li><li>Email support</li></ul>
+            <ul><li>10 videos/month</li><li>Single platform preset</li><li>Email support</li></ul>
           </article>
           <article class="plan pro">
-            <span class="badge">Most Popular</span>
             <h3>Pro</h3>
             <p class="price">$49/mo</p>
-            <ul><li>50 videos per month</li><li>All platform exports</li><li>Priority rendering</li></ul>
+            <ul><li>50 videos/month</li><li>All platform exports</li><li>Priority rendering</li></ul>
           </article>
           <article class="plan">
             <h3>Agency</h3>
             <p class="price">$99/mo</p>
-            <ul><li>Unlimited video generation</li><li>10 client workspaces</li><li>Priority support</li></ul>
+            <ul><li>Unlimited generation</li><li>10 client workspaces</li><li>Priority support</li></ul>
           </article>
         </div>
         <div style="margin-top:14px;">
@@ -478,20 +454,19 @@
       <div class="container">
         <span class="tag">FAQ</span>
         <h2>Common questions</h2>
-        <details><summary>Do I need editing skills?</summary><p>No. LeadAI is prompt-first and automates script, voice, and render flow.</p></details>
-        <details><summary>Can I use my own script?</summary><p>Yes. Paste your script in the generator and skip AI script mode.</p></details>
-        <details><summary>Which platforms can I publish to?</summary><p>TikTok, Instagram Reels, and YouTube Shorts optimized output.</p></details>
-        <details><summary>What happens after the free limit?</summary><p>You can upgrade to Starter, Pro, or Agency from the pricing page.</p></details>
-        <details><summary>Can agencies manage multiple clients?</summary><p>Yes. Agency tier supports multi-client workflow and higher output volume.</p></details>
+        <details><summary>Can I use Text -> Image -> Video now?</summary><p>Yes. Use the new mode from homepage buttons and templates.</p></details>
+        <details><summary>Can I still use script-first mode?</summary><p>Yes. Classic Script -> Voice -> Video mode remains available.</p></details>
+        <details><summary>Which platforms are supported?</summary><p>TikTok, Instagram Reels, and YouTube Shorts.</p></details>
+        <details><summary>Do I need editing skills?</summary><p>No. LeadAI handles generation and assembly automatically.</p></details>
       </div>
     </section>
 
     <section class="section">
       <div class="container cta">
         <h2>Create your first lead video now.</h2>
-        <p class="lead" style="margin-inline:auto; color:#d8f7e8;">From idea to publish-ready video in under 30 seconds.</p>
-        <div class="hero-actions" style="justify-content:center; margin-top:20px;">
-          <a class="btn btn-primary" href="/script-generator.html" data-track="hero_start_free_click">Start Free</a>
+        <p class="lead" style="margin:0 auto; color:#d8f7e8;">From idea to publish-ready video in under 30 seconds.</p>
+        <div class="hero-actions" style="justify-content:center;">
+          <a class="btn btn-primary" href="/script-generator.html?mode=text-image-video" data-track="text_image_video_start">Start Free — No Card Required</a>
           <a class="btn btn-ghost" href="/pricing.html">View Pricing</a>
         </div>
       </div>
@@ -513,26 +488,12 @@
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web",
     "url": "https://www.leadai.guru/index.html",
-    "description": "Generate scripts, voiceovers, and short-form lead videos from one prompt.",
+    "description": "Generate scripts, scene images, voiceovers, and short-form lead videos from one prompt.",
     "offers": [
       {"@type":"Offer","price":"0","priceCurrency":"USD","name":"Free"},
       {"@type":"Offer","price":"19","priceCurrency":"USD","name":"Starter"},
       {"@type":"Offer","price":"49","priceCurrency":"USD","name":"Pro"},
       {"@type":"Offer","price":"99","priceCurrency":"USD","name":"Agency"}
-    ]
-  }
-  </script>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {"@type":"Question","name":"Do I need editing skills?","acceptedAnswer":{"@type":"Answer","text":"No. LeadAI automates script, voiceover, and video generation."}},
-      {"@type":"Question","name":"Can I use my own script?","acceptedAnswer":{"@type":"Answer","text":"Yes. Paste your own script in the generator."}},
-      {"@type":"Question","name":"Which platforms can I publish to?","acceptedAnswer":{"@type":"Answer","text":"TikTok, Instagram Reels, and YouTube Shorts."}},
-      {"@type":"Question","name":"What happens after free limit?","acceptedAnswer":{"@type":"Answer","text":"Upgrade to Starter, Pro, or Agency from pricing."}},
-      {"@type":"Question","name":"Can agencies manage multiple clients?","acceptedAnswer":{"@type":"Answer","text":"Yes. Agency plan supports multi-client workflows."}}
     ]
   }
   </script>
@@ -545,8 +506,8 @@
       if (window.plausible) window.plausible(eventName, { props: payload || {} });
     }
 
-    document.querySelectorAll("[data-track]").forEach(function (el) {
-      el.addEventListener("click", function () {
+    document.querySelectorAll("[data-track]").forEach(function(el){
+      el.addEventListener("click", function(){
         track(el.getAttribute("data-track"), { location: "homepage" });
       });
     });
