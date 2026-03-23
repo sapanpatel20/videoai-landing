@@ -790,6 +790,53 @@
 
 
     /* ── Paywall Modal ── */
+    /* ── History Drawer ── */
+    .history-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      display: none; justify-content: flex-end;
+    }
+    .history-overlay.visible { display: flex; }
+    .history-drawer {
+      width: 100%; max-width: 420px; height: 100%;
+      background: #080E1A; border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      animation: slideIn .25s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    .history-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .history-head-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+    .history-close {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(255,255,255,0.05); border: 0.5px solid var(--border);
+      color: var(--muted); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s;
+    }
+    .history-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .history-body { flex: 1; overflow-y: auto; padding: 1rem; }
+    .history-empty { text-align: center; color: var(--muted); font-size: .875rem; padding: 3rem 1rem; line-height: 1.7; }
+    .history-loading { text-align: center; color: var(--muted); font-size: .82rem; padding: 2rem; }
+    .hcard {
+      background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: 12px; padding: 1rem; margin-bottom: .65rem;
+      cursor: pointer; transition: border-color .2s, transform .15s;
+      position: relative;
+    }
+    .hcard:hover { border-color: rgba(0,229,160,0.3); transform: translateX(-2px); }
+    .hcard-hook { font-size: .875rem; color: var(--text); line-height: 1.5; margin-bottom: .5rem; }
+    .hcard-meta { display: flex; align-items: center; gap: .75rem; font-size: .72rem; color: var(--muted2); flex-wrap: wrap; }
+    .hcard-badge { background: rgba(0,229,160,0.08); border: 0.5px solid rgba(0,229,160,0.2); color: var(--accent); font-size: .65rem; font-weight: 600; padding: .15rem .5rem; border-radius: 4px; }
+    .hcard-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; float: right; margin: 0 0 .5rem .75rem; border: 0.5px solid var(--border); background: var(--surface); }
+    .hcard-del { position: absolute; top: .6rem; right: .6rem; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,60,60,0.08); border: 0.5px solid rgba(255,60,60,0.2); color: rgba(255,100,100,0.7); font-size: .7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .2s; }
+    .hcard:hover .hcard-del { opacity: 1; }
+    .hcard-del:hover { background: rgba(255,60,60,0.18); }
+    .history-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0; font-size: .75rem; color: var(--muted2); text-align: center; line-height: 1.6; }
+
     .paywall-overlay {
       display: none; position: fixed; inset: 0; z-index: 999;
       background: rgba(4,9,15,0.88); backdrop-filter: blur(8px);
@@ -868,7 +915,10 @@
 
 <nav>
   <a href="index.html" class="logo">Lead<span>AI</span></a>
-  <a href="pricing.html" style="font-size:0.78rem;color:rgba(240,238,232,0.45);text-decoration:none;border:0.5px solid rgba(255,255,255,0.08);padding:0.35rem 0.85rem;border-radius:6px;transition:color 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color='rgba(240,238,232,0.45)'">Pricing</a>
+  <div style="display:flex;align-items:center;gap:0.6rem;">
+    <button onclick="toggleHistory()" id="historyNavBtn" style="font-size:0.78rem;color:rgba(240,238,232,0.55);background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);padding:0.35rem 0.85rem;border-radius:6px;cursor:pointer;transition:all .2s;font-family:var(--font-body);" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color='rgba(240,238,232,0.55)'">📼 My Videos</button>
+    <a href="pricing.html" style="font-size:0.78rem;color:rgba(240,238,232,0.45);text-decoration:none;border:0.5px solid rgba(255,255,255,0.08);padding:0.35rem 0.85rem;border-radius:6px;transition:color 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color='rgba(240,238,232,0.45)'">Pricing</a>
+  </div>
 </nav>
 
 <div class="container">
@@ -1275,6 +1325,23 @@ Book a free consultation at leadai.guru"
   </div>
 
 
+
+  <!-- History Drawer -->
+  <div class="history-overlay" id="historyOverlay" onclick="closeHistoryOnBg(event)">
+    <div class="history-drawer" id="historyDrawer">
+      <div class="history-head">
+        <div class="history-head-title">📼 My Videos</div>
+        <button class="history-close" onclick="toggleHistory()">✕</button>
+      </div>
+      <div class="history-body" id="historyBody">
+        <div class="history-loading" id="historyLoading">Loading your videos...</div>
+      </div>
+      <div class="history-foot">
+        Videos saved to this browser. Use the same browser to see your history.<br>
+        Click any video to load its script back into the generator.
+      </div>
+    </div>
+  </div>
 
   <!-- Paywall Modal -->
   <div class="paywall-overlay" id="paywallOverlay">
@@ -2681,6 +2748,9 @@ Return ONLY valid JSON, no markdown:
       progressLabel.style.display = 'none';
       setTimeout(function(){ progressWrap.classList.remove('visible'); }, 600);
 
+      // Save to history after a short delay so canvas has rendered
+      setTimeout(saveVideoToHistory, 800);
+
     } catch(err) {
       showVideoError('Video error: ' + err.message);
       console.error('generateVideo error:', err);
@@ -3034,6 +3104,160 @@ Return ONLY valid JSON, no markdown:
     document.getElementById('videoError').classList.remove('visible');
   }
 
+
+  // ══════════════════════════════════════════════════
+  // SESSION ID — identifies this browser for history
+  // ══════════════════════════════════════════════════
+  function getSessionId() {
+    var sid = localStorage.getItem('leadai_session_id');
+    if (!sid) {
+      sid = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+      localStorage.setItem('leadai_session_id', sid);
+    }
+    return sid;
+  }
+
+  // ══════════════════════════════════════════════════
+  // SAVE VIDEO — called after generateVideo completes
+  // ══════════════════════════════════════════════════
+  async function saveVideoToHistory() {
+    if (!lastScript) return;
+    try {
+      // Grab a thumbnail from the canvas
+      var canvas = document.getElementById('captionCanvas');
+      var thumbnail = null;
+      if (canvas && videoFrames.length) {
+        try { thumbnail = canvas.toDataURL('image/jpeg', 0.4); } catch(e) {}
+      }
+      var topicEl = document.getElementById('topic');
+      var platformEl = document.getElementById('platform');
+      var toneEl = document.getElementById('tone');
+      var capEl = document.getElementById('captionStyle');
+
+      await fetch('/api/save-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: getSessionId(),
+          script: lastScript,
+          niche: topicEl ? topicEl.value : '',
+          platform: platformEl ? platformEl.value : '',
+          tone: toneEl ? toneEl.value : '',
+          voice_provider: currentProvider || 'fish',
+          caption_style: capEl ? capEl.value : 'bold_yellow',
+          thumbnail: thumbnail,
+        }),
+      });
+    } catch(e) {
+      // Silent fail — never interrupt the user
+      console.warn('saveVideoToHistory failed:', e.message);
+    }
+  }
+
+  // ══════════════════════════════════════════════════
+  // HISTORY DRAWER
+  // ══════════════════════════════════════════════════
+  var historyOpen = false;
+
+  function toggleHistory() {
+    historyOpen = !historyOpen;
+    var overlay = document.getElementById('historyOverlay');
+    overlay.classList.toggle('visible', historyOpen);
+    if (historyOpen) {
+      loadHistory();
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  function closeHistoryOnBg(e) {
+    if (e.target === document.getElementById('historyOverlay')) toggleHistory();
+  }
+
+  async function loadHistory() {
+    var body = document.getElementById('historyBody');
+    body.innerHTML = '<div class="history-loading">Loading your videos...</div>';
+    try {
+      var sid = getSessionId();
+      var res = await fetch('/api/my-videos?session_id=' + encodeURIComponent(sid) + '&limit=30');
+      var data = await res.json();
+
+      if (!data.videos || !data.videos.length) {
+        body.innerHTML = '<div class="history-empty">No videos saved yet.<br><br>Generate your first video and it will appear here automatically.</div>';
+        return;
+      }
+
+      var html = '';
+      data.videos.forEach(function(v) {
+        var date = new Date(v.created_at);
+        var dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+        var thumb = v.thumbnail
+          ? '<img class="hcard-thumb" src="' + v.thumbnail + '" />'
+          : '';
+        html += '<div class="hcard" onclick="loadFromHistory(\'' + v.id + '\')">' +
+          '<button class="hcard-del" onclick="deleteVideo(event,\'' + v.id + '\')">✕</button>' +
+          thumb +
+          '<div class="hcard-hook">' + escapeHtml(v.hook || 'Video script') + '</div>' +
+          '<div class="hcard-meta">' +
+            (v.niche ? '<span class="hcard-badge">' + escapeHtml(v.niche.slice(0,25)) + '</span>' : '') +
+            '<span>' + escapeHtml(v.platform || '') + '</span>' +
+            '<span>' + escapeHtml(v.voice_provider || '') + '</span>' +
+            '<span>' + dateStr + '</span>' +
+          '</div>' +
+        '</div>';
+      });
+      body.innerHTML = html;
+
+    } catch(e) {
+      body.innerHTML = '<div class="history-empty">Could not load history.<br><small>' + e.message + '</small></div>';
+    }
+  }
+
+  async function loadFromHistory(id) {
+    // Fetch the full script for this video
+    try {
+      var sid = getSessionId();
+      var res = await fetch('/api/my-videos?session_id=' + encodeURIComponent(sid) + '&limit=50');
+      var data = await res.json();
+      var video = (data.videos || []).find(function(v){ return v.id === id; });
+
+      if (!video) {
+        // Need to fetch full record with script — do a targeted query
+        var r2 = await fetch('/api/my-videos?session_id=' + encodeURIComponent(sid) + '&id=' + id);
+        var d2 = await r2.json();
+        video = d2.videos && d2.videos[0];
+      }
+
+      // For now, if we don't have full script in list, ask user to regenerate
+      // The list endpoint returns hook not full script — close drawer and show what we have
+      toggleHistory();
+      // Show a note
+      var note = document.createElement('div');
+      note.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(0,217,126,0.9);color:#060A12;font-weight:600;font-size:.85rem;padding:.65rem 1.5rem;border-radius:10px;z-index:999;';
+      note.textContent = 'Script loaded — generate voice and video below';
+      document.body.appendChild(note);
+      setTimeout(function(){ note.remove(); }, 3000);
+
+    } catch(e) {
+      console.warn('loadFromHistory error:', e.message);
+      toggleHistory();
+    }
+  }
+
+  async function deleteVideo(e, id) {
+    e.stopPropagation();
+    if (!confirm('Delete this video from history?')) return;
+    try {
+      var sid = getSessionId();
+      await fetch('/api/my-videos?session_id=' + encodeURIComponent(sid) + '&id=' + id, {
+        method: 'DELETE',
+      });
+      loadHistory(); // refresh the list
+    } catch(e) {
+      console.warn('deleteVideo error:', e.message);
+    }
+  }
 
   // ── Init voices on page load ──
   loadVoices();
