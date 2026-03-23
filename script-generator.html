@@ -703,6 +703,58 @@
     }
     .mode-tab:hover:not(.active) { color: var(--text); }
 
+    /* trending panel */
+    .trending-panel { display: none; }
+    .trending-panel.visible { display: block; }
+
+    .trend-niche-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .trend-niche-btn {
+      padding: 0.4rem 1rem; border-radius: 100px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03); color: var(--muted);
+      font-family: var(--font-body); font-size: 0.78rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .trend-niche-btn:hover, .trend-niche-btn.active {
+      border-color: rgba(0,229,160,0.4); background: var(--accent-dim); color: var(--accent);
+    }
+    .trend-cards { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.25rem; }
+    .trend-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      display: flex; align-items: flex-start; gap: 1rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .trend-card:hover { border-color: rgba(0,229,160,0.3); transform: translateX(3px); }
+    .trend-card.selected { border-color: rgba(0,229,160,0.5); background: rgba(0,229,160,0.06); }
+    .trend-thumb {
+      width: 54px; height: 54px; border-radius: 8px; flex-shrink: 0;
+      background: var(--surface); object-fit: cover; border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; overflow: hidden;
+    }
+    .trend-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .trend-body { flex: 1; min-width: 0; }
+    .trend-hook { font-size: 0.875rem; color: var(--text); line-height: 1.5; margin-bottom: 0.35rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trend-meta { display: flex; gap: 1rem; font-size: 0.72rem; color: var(--muted2); }
+    .trend-meta span { display: flex; align-items: center; gap: 0.2rem; }
+    .trend-use-btn {
+      flex-shrink: 0; background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.3);
+      color: var(--accent); font-family: var(--font-body); font-size: 0.75rem; font-weight: 600;
+      padding: 0.4rem 0.85rem; border-radius: 7px; cursor: pointer; transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .trend-use-btn:hover { background: rgba(0,229,160,0.18); }
+    .trend-empty { text-align: center; color: var(--muted); font-size: 0.875rem; padding: 2rem 0; }
+    .trend-status { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; min-height: 1.2rem; }
+    .trend-rewrite-wrap {
+      background: rgba(0,229,160,0.04); border: 1px solid rgba(0,229,160,0.15);
+      border-radius: 12px; padding: 1.25rem; margin-top: 1rem; display: none;
+    }
+    .trend-rewrite-wrap.visible { display: block; }
+    .trend-rewrite-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+
     .paste-panel { display: none; }
     .paste-panel.visible { display: block; }
     .ai-panel { display: block; }
@@ -831,7 +883,8 @@
     <!-- Mode tabs -->
     <div class="mode-tabs">
       <button class="mode-tab active" id="tabAI" onclick="switchMode('ai')">✦ AI Generate Script</button>
-      <button class="mode-tab" id="tabPaste" onclick="switchMode('paste')">✎ Paste My Own Script</button>
+      <button class="mode-tab" id="tabTrend" onclick="switchMode('trending')">🔥 Find Trending</button>
+      <button class="mode-tab" id="tabPaste" onclick="switchMode('paste')">✎ Paste My Own</button>
     </div>
 
     <!-- AI generate panel -->
@@ -924,6 +977,50 @@ Book a free consultation at leadai.guru"
         ✓ Use This Script → Generate Voice &amp; Video
       </button>
     </div><!-- end paste-panel -->
+
+    <!-- ── TRENDING PANEL ── -->
+    <div class="trending-panel" id="trendingPanel">
+      <div class="card-title"><div class="card-title-dot"></div> 🔥 Find Trending Videos in Your Niche</div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;">
+        Pick your niche → we scrape the top trending TikToks right now → Claude rewrites the script uniquely for your business → generate your video.
+      </p>
+
+      <!-- Quick niche chips -->
+      <div class="trend-niche-row" id="nicheChips">
+        <button class="trend-niche-btn active" data-niche="real estate Dubai" onclick="selectNiche(this)">🏡 Real Estate</button>
+        <button class="trend-niche-btn" data-niche="fitness gym workout" onclick="selectNiche(this)">🏋️ Fitness & Gym</button>
+        <button class="trend-niche-btn" data-niche="mortgage broker finance" onclick="selectNiche(this)">📊 Mortgage</button>
+        <button class="trend-niche-btn" data-niche="business coaching success" onclick="selectNiche(this)">🌟 Coaching</button>
+        <button class="trend-niche-btn" data-niche="restaurant food local" onclick="selectNiche(this)">🍽️ Restaurant</button>
+        <button class="trend-niche-btn" data-niche="beauty salon skincare" onclick="selectNiche(this)">💅 Beauty</button>
+      </div>
+
+      <!-- Custom niche input -->
+      <div style="display:flex;gap:0.6rem;margin-bottom:0.5rem;">
+        <input type="text" id="customNiche" placeholder="Or type your own niche e.g. dental clinic London"
+          style="flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.9rem;padding:0.65rem 1rem;outline:none;"
+          oninput="document.querySelectorAll('.trend-niche-btn').forEach(b=>b.classList.remove('active'))"/>
+        <button onclick="fetchTrending()" id="findTrendBtn"
+          style="background:var(--accent);color:#060A12;border:none;border-radius:8px;font-family:var(--font-body);font-size:0.875rem;font-weight:700;padding:0.65rem 1.25rem;cursor:pointer;white-space:nowrap;transition:opacity .2s;">
+          🔥 Find Trending
+        </button>
+      </div>
+      <div class="trend-status" id="trendStatus"></div>
+
+      <!-- Results -->
+      <div class="trend-cards" id="trendCards">
+        <div class="trend-empty" id="trendEmpty">Click "Find Trending" to discover what's going viral in your niche right now.</div>
+      </div>
+
+      <!-- Rewrite preview -->
+      <div class="trend-rewrite-wrap" id="trendRewriteWrap">
+        <div class="trend-rewrite-label">✦ Claude rewrote it for your business</div>
+        <div id="trendRewritePreview" style="font-size:0.875rem;color:var(--muted);line-height:1.7;white-space:pre-wrap;"></div>
+        <button onclick="useTrendScript()" style="margin-top:1rem;background:var(--accent);color:#060A12;border:none;border-radius:8px;font-family:var(--font-body);font-size:0.875rem;font-weight:700;padding:0.65rem 1.5rem;cursor:pointer;transition:opacity .2s;width:100%;">
+          ✓ Use This Script → Generate Voice & Video
+        </button>
+      </div>
+    </div><!-- end trending-panel -->
 
   </div>
 
@@ -2933,22 +3030,203 @@ Return ONLY valid JSON, no markdown:
 
   // ── Mode switching ──
   function switchMode(mode) {
-    var aiPanel    = document.getElementById('aiPanel');
-    var pastePanel = document.getElementById('pastePanel');
-    var tabAI      = document.getElementById('tabAI');
-    var tabPaste   = document.getElementById('tabPaste');
+    var aiPanel      = document.getElementById('aiPanel');
+    var pastePanel   = document.getElementById('pastePanel');
+    var trendPanel   = document.getElementById('trendingPanel');
+    var tabAI        = document.getElementById('tabAI');
+    var tabPaste     = document.getElementById('tabPaste');
+    var tabTrend     = document.getElementById('tabTrend');
+
+    // Hide all
+    aiPanel.classList.add('hidden');
+    pastePanel.classList.remove('visible');
+    trendPanel.classList.remove('visible');
+    tabAI.classList.remove('active');
+    tabPaste.classList.remove('active');
+    if (tabTrend) tabTrend.classList.remove('active');
 
     if (mode === 'ai') {
       aiPanel.classList.remove('hidden');
-      pastePanel.classList.remove('visible');
       tabAI.classList.add('active');
-      tabPaste.classList.remove('active');
+    } else if (mode === 'trending') {
+      trendPanel.classList.add('visible');
+      if (tabTrend) tabTrend.classList.add('active');
     } else {
-      aiPanel.classList.add('hidden');
       pastePanel.classList.add('visible');
-      tabAI.classList.remove('active');
       tabPaste.classList.add('active');
     }
+  }
+
+  // ══════════════════════════════════════════════════
+  // TRENDING VIDEO ENGINE
+  // ══════════════════════════════════════════════════
+  var currentTrendNiche = 'real estate Dubai';
+  var selectedTrendText = '';
+  var trendRewrittenScript = '';
+
+  function selectNiche(btn) {
+    document.querySelectorAll('.trend-niche-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentTrendNiche = btn.dataset.niche;
+    document.getElementById('customNiche').value = '';
+  }
+
+  async function fetchTrending() {
+    var customNiche = document.getElementById('customNiche').value.trim();
+    var niche = customNiche || currentTrendNiche;
+    if (!niche) return;
+
+    var btn = document.getElementById('findTrendBtn');
+    var status = document.getElementById('trendStatus');
+    var cardsEl = document.getElementById('trendCards');
+    var empty = document.getElementById('trendEmpty');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Scraping TikTok...';
+    status.textContent = 'Searching trending videos for "' + niche + '"...';
+    cardsEl.innerHTML = '';
+    document.getElementById('trendRewriteWrap').classList.remove('visible');
+
+    try {
+      var res = await fetch('/api/trending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ niche: niche, count: 8 }),
+      });
+      var data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+      if (!data.videos || !data.videos.length) {
+        status.textContent = 'No trending videos found — try a different niche.';
+        cardsEl.innerHTML = '<div class="trend-empty">Try more specific terms like "real estate tips" or "gym transformation".</div>';
+        return;
+      }
+
+      status.textContent = 'Found ' + data.videos.length + ' trending videos. Click one to rewrite it for your business.';
+      renderTrendCards(data.videos, niche);
+
+    } catch(err) {
+      status.textContent = '⚠ ' + err.message;
+      if (err.message.includes('APIFY_API_KEY')) {
+        status.innerHTML = '⚠ Add APIFY_API_KEY to Vercel env vars — sign up free at <a href="https://apify.com" target="_blank" style="color:var(--accent)">apify.com</a>';
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔥 Find Trending';
+  }
+
+  function renderTrendCards(videos, niche) {
+    var cardsEl = document.getElementById('trendCards');
+    cardsEl.innerHTML = '';
+
+    videos.forEach(function(v, i) {
+      var card = document.createElement('div');
+      card.className = 'trend-card';
+      card.id = 'tcard-' + i;
+      card.innerHTML = `
+        <div class="trend-thumb">
+          ${v.thumbnail ? '<img src="' + v.thumbnail + '" onerror="this.parentNode.textContent=\'🎬\'" />' : '🎬'}
+        </div>
+        <div class="trend-body">
+          <div class="trend-hook">${escapeHtml(v.hook || v.title)}</div>
+          <div class="trend-meta">
+            <span>👁 ${v.views}</span>
+            <span>❤️ ${v.likes}</span>
+            <span>💬 ${v.comments}</span>
+            <span>@${v.author}</span>
+          </div>
+        </div>
+        <button class="trend-use-btn" onclick="rewriteTrend(${i}, '${niche.replace(/'/g,"\\'")}')">
+          ✦ Rewrite
+        </button>
+      `;
+      cardsEl.appendChild(card);
+    });
+
+    // Store videos globally for rewrite
+    window._trendVideos = videos;
+  }
+
+  async function rewriteTrend(idx, niche) {
+    var video = (window._trendVideos || [])[idx];
+    if (!video) return;
+
+    // Highlight selected card
+    document.querySelectorAll('.trend-card').forEach(function(c){ c.classList.remove('selected'); });
+    var card = document.getElementById('tcard-' + idx);
+    if (card) card.classList.add('selected');
+
+    var status = document.getElementById('trendStatus');
+    var rewriteWrap = document.getElementById('trendRewriteWrap');
+    var preview = document.getElementById('trendRewritePreview');
+
+    status.textContent = '✦ Claude is rewriting this for your business...';
+    rewriteWrap.classList.remove('visible');
+
+    // Get platform/tone from main form if available
+    var platform = document.getElementById('platform') ? document.getElementById('platform').value : 'Instagram Reels';
+    var tone = document.getElementById('tone') ? document.getElementById('tone').value : 'Professional';
+    var cta = document.getElementById('cta') ? document.getElementById('cta').value : 'Book a free consultation';
+    var audience = document.getElementById('audience') ? document.getElementById('audience').value : 'local business owners';
+
+    try {
+      var res = await fetch('/api/rewrite-trend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trendingText: video.fullText || video.hook,
+          niche: niche,
+          platform: platform,
+          tone: tone,
+          cta: cta || 'Book a free consultation',
+          audience: audience,
+        }),
+      });
+      var data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      trendRewrittenScript = data.script;
+      preview.textContent = data.script;
+      rewriteWrap.classList.add('visible');
+      status.textContent = '✓ Script rewritten — review it below, then click "Use This Script".';
+
+      // Scroll to rewrite
+      rewriteWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch(err) {
+      status.textContent = '⚠ Rewrite failed: ' + err.message;
+    }
+  }
+
+  function useTrendScript() {
+    if (!trendRewrittenScript) return;
+
+    // Set as lastScript and switch to output
+    lastScript = trendRewrittenScript;
+    whisperCaptions = [];
+    var sb = document.getElementById('syncBadge');
+    if (sb) sb.style.display = 'none';
+
+    // Auto-fill topic from niche for image search
+    var topicEl = document.getElementById('topic');
+    var imgSearch = document.getElementById('imageSearch');
+    if (topicEl && !topicEl.value) topicEl.value = currentTrendNiche;
+    if (imgSearch && !imgSearch.value) imgSearch.value = currentTrendNiche;
+
+    // Render as a normal script output
+    renderScript(trendRewrittenScript);
+
+    // Show output + voice card
+    var outputCard = document.getElementById('outputCard');
+    outputCard.classList.add('visible');
+    document.getElementById('voiceCard').classList.add('visible');
+
+    // Switch to AI tab so they see the full workflow
+    switchMode('ai');
+
+    // Scroll to output
+    outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function useOwnScript() {
