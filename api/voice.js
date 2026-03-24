@@ -8,8 +8,44 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // ── GET: voice list (ElevenLabs) ──
+  // ── GET: voice list ──
+  // ?list=true&provider=fish  → top Fish Audio public voices
+  // ?list=true&provider=elevenlabs (or no provider) → ElevenLabs voices
   if (req.method === 'GET' && req.query.list === 'true') {
+    const listProvider = req.query.provider || 'elevenlabs';
+
+    // Fish Audio public model library
+    if (listProvider === 'fish') {
+      const apiKey = process.env.FISH_AUDIO_API_KEY;
+      if (!apiKey) return res.status(500).json({ error: 'FISH_AUDIO_API_KEY not set' });
+      try {
+        // Fetch top English TTS voices sorted by most used
+        const r = await fetch(
+          'https://api.fish.audio/model?page_size=20&page_number=1&language=en&type=tts&sort_by=task_count',
+          { headers: { 'Authorization': `Bearer ${apiKey}` } }
+        );
+        if (!r.ok) {
+          // API failed — return our curated fallback list
+          return res.status(200).json({ voices: getFishFallbackVoices(), fallback: true });
+        }
+        const data = await r.json();
+        if (!data.items || !data.items.length) {
+          return res.status(200).json({ voices: getFishFallbackVoices(), fallback: true });
+        }
+        const voices = data.items.map(v => ({
+          id: v._id,
+          name: v.title,
+          description: (v.tags || []).join(', '),
+          likes: v.like_count || 0,
+          uses: v.task_count || 0,
+        }));
+        return res.status(200).json({ voices });
+      } catch (err) {
+        return res.status(200).json({ voices: getFishFallbackVoices(), fallback: true });
+      }
+    }
+
+    // ElevenLabs voice list
     if (!process.env.ELEVENLABS_API_KEY) {
       return res.status(500).json({ error: 'ELEVENLABS_API_KEY not set' });
     }
@@ -23,6 +59,21 @@ export default async function handler(req, res) {
         voices: data.voices.map(v => ({ id: v.voice_id, name: v.name, category: v.category || 'general' }))
       });
     } catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+
+  // Curated fallback voices — real IDs that work on fish.audio
+  function getFishFallbackVoices() {
+    return [
+      { id: 'default',                            name: 'Fish Default',          description: 'natural, balanced' },
+      { id: '54a5170264694bfc8e9ad98df7bd89c3',   name: 'Alex',                  description: 'male, professional, English' },
+      { id: '0eb6c58816b44d16ab8040a73bfde2f2',   name: 'Sarah',                 description: 'female, warm, English' },
+      { id: '7f92f8efb8ec43bf81429cc1c9199cb1',   name: 'James',                 description: 'male, authoritative, English' },
+      { id: 'ad8bfee14f5a4fe0a22bf85df9f5e96d',   name: 'Emma',                  description: 'female, energetic, English' },
+      { id: '5e9da954905c4fd38a291b21a86fe7ee',   name: 'David',                 description: 'male, deep, broadcast' },
+      { id: '934032efb98b4355b4e34a66a3e48d67',   name: 'Olivia',                description: 'female, conversational' },
+      { id: '803863a562204ebbaff3d65be7d16714',   name: 'Marcus',                description: 'male, smooth, business' },
+      { id: 'b19d044cccd84c90acc8dc30ebb10af1',   name: 'Zara',                  description: 'female, clear, news style' },
+    ];
   }
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
