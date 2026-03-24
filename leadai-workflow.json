@@ -1,0 +1,120 @@
+{
+  "name": "Leadai Viral Content Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Return ONLY valid JSON. No markdown.\n\n{\n  \"hook\": \"viral hook under 12 words\",\n  \"script\": \"30-second engaging script\",\n  \"hook_visual_prompt\": \"cinematic first scene\",\n  \"scene_prompts\": [\"scene 1\", \"scene 2\"],\n  \"cta\": \"call to action\",\n  \"caption\": \"instagram caption\",\n  \"hashtags\": [\"#realestate\", \"#investing\"]\n}\n\nTopic: Dubai real estate for Australian investors."
+          }
+        ]
+      },
+      "id": "ai",
+      "name": "AI Script Generator",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = JSON.parse($json.message.content);\nlet score = 0;\nconst hook = data.hook.toLowerCase();\nif (hook.includes('secret')) score += 2;\nif (hook.includes('million')) score += 2;\nif (hook.length < 12) score += 1;\nreturn [{...data, score}];"
+      },
+      "id": "parse",
+      "name": "Parse + Score",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.score}}",
+              "operation": "largerEqual",
+              "value2": 2
+            }
+          ]
+        }
+      },
+      "id": "filter",
+      "name": "Viral Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.fish.audio",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "{\n  \"text\": \"{{$json.script}}\"\n}"
+      },
+      "id": "voice",
+      "name": "Fish Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.pexels.com/videos/search",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "query",
+              "value": "={{$json.hook_visual_prompt}}"
+            }
+          ]
+        }
+      },
+      "id": "pexels",
+      "name": "Pexels Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {},
+      "id": "merge",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "AI Script Generator", "type": "main", "index": 0 }]]
+    },
+    "AI Script Generator": {
+      "main": [[{ "node": "Parse + Score", "type": "main", "index": 0 }]]
+    },
+    "Parse + Score": {
+      "main": [[{ "node": "Viral Filter", "type": "main", "index": 0 }]]
+    },
+    "Viral Filter": {
+      "main": [
+        [{ "node": "Fish Audio", "type": "main", "index": 0 }],
+        [{ "node": "Pexels Video", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fish Audio": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 0 }]]
+    },
+    "Pexels Video": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 1 }]]
+    }
+  }
+}
