@@ -1204,27 +1204,41 @@ Book a free consultation at leadai.guru"
       <!-- PEXELS PANEL -->
       <div class="bg-panel active" id="bgpanel-pexels">
         <div style="display:flex;gap:0.75rem;">
-          <input type="text" id="imageSearch" class="field-box" list="searchHistory" placeholder="e.g. Dubai luxury apartment" style="flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.95rem;padding:0.75rem 1rem;outline:none;" />
+          <input type="text" id="imageSearch" class="field-box" list="searchHistory" placeholder="Search Pexels — add multiple searches" style="flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.95rem;padding:0.75rem 1rem;outline:none;" />
           <datalist id="searchHistory"></datalist>
-          <button onclick="fetchImages()" style="background:rgba(255,255,255,0.06);border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:0.85rem;padding:0.75rem 1rem;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">&#128269; Search</button>
+          <button onclick="fetchImages()" style="background:rgba(255,255,255,0.06);border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:0.85rem;padding:0.75rem 1rem;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">🔍 Add</button>
+          <button onclick="clearSearchResults()" title="Clear search results and start fresh" style="background:rgba(255,255,255,0.03);border:0.5px solid var(--border);color:var(--muted2);font-family:var(--font-body);font-size:0.82rem;padding:0.75rem 0.75rem;border-radius:8px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">↺</button>
         </div>
         <div id="imagePicker" style="display:none;margin-top:0.75rem;">
+
+          <!-- SELECTED MEDIA TRAY — persists across searches -->
+          <div id="selectedTray" style="display:none;margin-bottom:0.85rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+              <div style="font-size:0.72rem;font-weight:600;color:var(--accent);" id="trayCount">0 items selected</div>
+              <button onclick="clearAllSelected()" style="font-size:0.68rem;color:rgba(255,100,100,0.75);background:rgba(255,60,60,0.06);border:0.5px solid rgba(255,60,60,0.2);padding:0.2rem 0.6rem;border-radius:5px;cursor:pointer;font-family:var(--font-body);">✕ Clear all</button>
+            </div>
+            <div id="trayItems" style="display:flex;gap:0.4rem;flex-wrap:wrap;"></div>
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin-top:0.75rem;"></div>
+          </div>
+
           <!-- Tab bar -->
           <div style="display:flex;gap:0;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;padding:3px;margin-bottom:0.75rem;">
             <button id="tabPhotos" onclick="switchMediaTab('photos')" style="flex:1;padding:0.45rem 0.75rem;border-radius:6px;border:none;font-family:var(--font-body);font-size:0.8rem;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--text);border:0.5px solid var(--border-hover);">🖼 Photos</button>
             <button id="tabVideos" onclick="switchMediaTab('videos')" style="flex:1;padding:0.45rem 0.75rem;border-radius:6px;border:none;font-family:var(--font-body);font-size:0.8rem;font-weight:500;cursor:pointer;background:transparent;color:var(--muted);">🎥 Videos</button>
           </div>
 
+          <!-- Current search label -->
+          <div id="currentSearchLabel" style="font-size:0.7rem;color:var(--muted2);margin-bottom:0.5rem;"></div>
+
           <!-- Selection toolbar -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.4rem;">
-            <div style="font-size:0.72rem;font-weight:600;color:var(--accent);" id="selectionCount">Tap photos to select — pick as many as you want</div>
+            <div style="font-size:0.72rem;font-weight:600;color:var(--muted);" id="selectionCount">Tap to add to your video</div>
             <div style="display:flex;gap:0.4rem;">
-              <button onclick="selectAllMedia()" style="font-size:0.7rem;font-weight:600;color:var(--muted);background:rgba(255,255,255,0.04);border:0.5px solid var(--border);padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;">Select All</button>
-              <button onclick="clearMediaSelection()" style="font-size:0.7rem;font-weight:600;color:var(--muted);background:rgba(255,255,255,0.04);border:0.5px solid var(--border);padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;">Clear</button>
+              <button onclick="selectAllMedia()" style="font-size:0.7rem;font-weight:600;color:var(--muted);background:rgba(255,255,255,0.04);border:0.5px solid var(--border);padding:0.25rem 0.65rem;border-radius:6px;cursor:pointer;">Add All</button>
             </div>
           </div>
 
-          <!-- Grid — 3 cols, shows up to 12 items -->
+          <!-- Grid -->
           <div id="imageGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;"></div>
 
           <!-- Load more -->
@@ -2126,7 +2140,6 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   let whisperCaptions = [];   // [ { text, start, end, progress } ] from Whisper
   let animInterval = null;
   let loadedImages = [];
-  let selectedImageUrls = [];
 
   function getScriptSection(section) {
     if (!lastScript) return '';
@@ -2170,9 +2183,119 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
 
   // ── Media tab state ──
   var currentMediaTab = 'photos';
+
+  // Current search results (replaced on each search)
   var allPhotos = [];
   var allVideos = [];
+
+  // Persistent selected media — survives across multiple searches
+  // Each item: { url, thumb, type:'photo'|'video', label, duration }
+  var selectedMedia = [];
+
+  // Legacy URL arrays — kept for compatibility with generateVideo
+  var selectedImageUrls = [];
   var selectedVideoUrls = [];
+
+  function syncLegacyArrays() {
+    selectedImageUrls = selectedMedia.filter(function(m){ return m.type==='photo'; }).map(function(m){ return m.url; });
+    selectedVideoUrls  = selectedMedia.filter(function(m){ return m.type==='video'; }).map(function(m){ return m.url; });
+  }
+
+  function isMediaSelected(url) {
+    return selectedMedia.some(function(m){ return m.url === url; });
+  }
+
+  function addMedia(item) {
+    if (!isMediaSelected(item.url)) {
+      selectedMedia.push(item);
+      syncLegacyArrays();
+    }
+  }
+
+  function removeMedia(url) {
+    selectedMedia = selectedMedia.filter(function(m){ return m.url !== url; });
+    syncLegacyArrays();
+  }
+
+  function clearSearchResults() {
+    // Clears the search result pool (not the selected items)
+    allPhotos = [];
+    allVideos = [];
+    mediaShownCount = 9;
+    var grid = document.getElementById('imageGrid');
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted);font-size:0.85rem;padding:1rem 0;text-align:center;">Search cleared — type a new topic and click 🔍 Add</div>';
+    var lbl = document.getElementById('currentSearchLabel');
+    if (lbl) lbl.textContent = '';
+    var tabV = document.getElementById('tabVideos');
+    if (tabV) tabV.textContent = '🎥 Videos';
+    var loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+    // Selected items stay intact
+    updateSelectionCount();
+  }
+
+  function clearAllSelected() {
+    selectedMedia = [];
+    syncLegacyArrays();
+    renderTray();
+    if (currentMediaTab === 'videos') renderVideoPicker(allVideos);
+    else renderImagePicker(allPhotos);
+  }
+
+  function renderTray() {
+    var tray = document.getElementById('selectedTray');
+    var items = document.getElementById('trayItems');
+    var count = document.getElementById('trayCount');
+    if (!tray || !items) return;
+
+    if (!selectedMedia.length) {
+      tray.style.display = 'none';
+      return;
+    }
+    tray.style.display = 'block';
+    var total = selectedMedia.length;
+    var photos = selectedMedia.filter(function(m){ return m.type==='photo'; }).length;
+    var videos = selectedMedia.filter(function(m){ return m.type==='video'; }).length;
+    var parts = [];
+    if (photos) parts.push(photos + ' photo' + (photos!==1?'s':''));
+    if (videos) parts.push(videos + ' video' + (videos!==1?'s':''));
+    count.textContent = '✓ ' + parts.join(' + ') + ' selected — cycle through your video';
+    count.style.color = 'var(--accent)';
+
+    items.innerHTML = '';
+    selectedMedia.forEach(function(m, idx) {
+      var chip = document.createElement('div');
+      chip.style.cssText = 'position:relative;width:42px;height:42px;border-radius:7px;overflow:hidden;flex-shrink:0;border:2px solid ' +
+        (m.type==='video' ? '#64A0FF' : 'var(--accent)') + ';cursor:default;';
+
+      var img = document.createElement('img');
+      img.src = m.thumb;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+
+      var num = document.createElement('div');
+      num.style.cssText = 'position:absolute;bottom:1px;left:2px;font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.8);';
+      num.textContent = idx + 1;
+
+      var icon = document.createElement('div');
+      icon.style.cssText = 'position:absolute;top:1px;left:2px;font-size:8px;';
+      icon.textContent = m.type === 'video' ? '▶' : '🖼';
+
+      var del = document.createElement('button');
+      del.style.cssText = 'position:absolute;top:-1px;right:-1px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;';
+      del.textContent = '×';
+      del.title = 'Remove';
+      del.onclick = (function(url){ return function(e) {
+        e.stopPropagation();
+        removeMedia(url);
+        renderTray();
+        if (currentMediaTab === 'videos') renderVideoPicker(allVideos);
+        else renderImagePicker(allPhotos);
+      }; })(m.url);
+
+      chip.appendChild(img); chip.appendChild(num); chip.appendChild(icon); chip.appendChild(del);
+      items.appendChild(chip);
+    });
+  }
   var localMediaElements = [];  // stores {type, el, blobUrl, name} from upload/webcam
 
   // ── Background source switcher ──
@@ -2400,15 +2523,28 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
       var data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      allPhotos = data.photos || [];
-      allVideos = data.videos || [];
+      // ACCUMULATE results — new search adds to existing, doesn't replace
+      var newPhotos = data.photos || [];
+      var newVideos = data.videos || [];
 
-      // Reset selection and page counter for new search
-      selectedImageUrls = allPhotos.map(function(p){ return p.url; }); // auto-select all
-      selectedVideoUrls = [];
+      // Merge: keep existing + add new ones not already in list
+      var existingPhotoUrls = allPhotos.map(function(p){ return p.url; });
+      newPhotos.forEach(function(p){
+        if (existingPhotoUrls.indexOf(p.url) === -1) allPhotos.push(p);
+      });
+      var existingVideoUrls = allVideos.map(function(v){ return v.url; });
+      newVideos.forEach(function(v){
+        if (existingVideoUrls.indexOf(v.url) === -1) allVideos.push(v);
+      });
+
+      // Show current search label
+      var lbl = document.getElementById('currentSearchLabel');
+      if (lbl) lbl.textContent = 'Showing results for: ' + query + ' (' + newPhotos.length + ' photos, ' + newVideos.length + ' videos added)';
+
       mediaShownCount = 9;
 
       renderImagePicker(allPhotos);
+      renderTray();
       document.getElementById('imagePicker').style.display = 'block';
 
       // Save search to history (last 8 unique searches)
@@ -2445,33 +2581,46 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     var el = document.getElementById('selectionCount');
     if (!el) return;
     var tab = currentMediaTab || 'photos';
-    var count = tab === 'videos' ? selectedVideoUrls.length : selectedImageUrls.length;
-    if (count === 0) {
-      el.textContent = 'Tap to select — pick as many as you want';
+    var tabItems = selectedMedia.filter(function(m){ return tab==='videos' ? m.type==='video' : m.type==='photo'; });
+    if (tabItems.length === 0) {
+      el.textContent = tab === 'videos' ? 'Tap ▶ Preview or + Select to add videos' : 'Tap photos to add them to your video';
       el.style.color = 'var(--muted)';
     } else {
-      el.textContent = '✓ ' + count + ' ' + (tab === 'videos' ? 'video' : 'photo') + (count !== 1 ? 's' : '') + ' selected — they cycle through your video';
+      el.textContent = tabItems.length + ' ' + (tab==='videos'?'video':'photo') + (tabItems.length!==1?'s':'') + ' from this search added';
       el.style.color = 'var(--accent)';
     }
   }
 
   function selectAllMedia() {
     if (currentMediaTab === 'videos') {
-      selectedVideoUrls = allVideos.map(function(v){ return v.url; });
+      allVideos.forEach(function(v){
+        if (!isMediaSelected(v.url)) addMedia({ url:v.url, thumb:v.thumb, type:'video', label:v.photographer||'', duration:v.duration });
+      });
+      renderVideoPicker(allVideos);
     } else {
-      selectedImageUrls = allPhotos.map(function(p){ return p.url; });
+      allPhotos.forEach(function(p){
+        if (!isMediaSelected(p.url)) addMedia({ url:p.url, thumb:p.thumb||p.url, type:'photo', label:p.alt||'' });
+      });
+      renderImagePicker(allPhotos);
     }
-    currentMediaTab === 'videos' ? renderVideoPicker(allVideos) : renderImagePicker(allPhotos);
+    renderTray();
+    updateSelectionCount();
   }
 
   function clearMediaSelection() {
+    // Only clear items from current tab's current search results
     if (currentMediaTab === 'videos') {
-      selectedVideoUrls = [];
-      renderVideoPicker(allVideos);
+      var currentUrls = allVideos.map(function(v){ return v.url; });
+      selectedMedia = selectedMedia.filter(function(m){ return m.type!=='video' || currentUrls.indexOf(m.url)===-1; });
     } else {
-      selectedImageUrls = [];
-      renderImagePicker(allPhotos);
+      var currentUrls = allPhotos.map(function(p){ return p.url; });
+      selectedMedia = selectedMedia.filter(function(m){ return m.type!=='photo' || currentUrls.indexOf(m.url)===-1; });
     }
+    syncLegacyArrays();
+    renderTray();
+    if (currentMediaTab === 'videos') renderVideoPicker(allVideos);
+    else renderImagePicker(allPhotos);
+    updateSelectionCount();
   }
 
   function loadMoreMedia() {
@@ -2501,7 +2650,7 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
 
     var toShow = photos.slice(0, mediaShownCount);
     toShow.forEach(function(p) {
-      var orderIdx = selectedImageUrls.indexOf(p.url);
+      var orderIdx = selectedMedia.findIndex(function(m){ return m.url === p.url; });
       var isSelected = orderIdx !== -1;
 
       var wrap = document.createElement('div');
@@ -2541,13 +2690,13 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
       wrap.onmouseleave = function(){ overlay.style.opacity='0'; };
 
       wrap.onclick = function() {
-        var selIdx = selectedImageUrls.indexOf(p.url);
-        if (selIdx !== -1) {
-          selectedImageUrls.splice(selIdx, 1);
+        if (isMediaSelected(p.url)) {
+          removeMedia(p.url);
         } else {
-          selectedImageUrls.push(p.url);
+          addMedia({ url: p.url, thumb: p.thumb || p.url, type: 'photo', label: p.alt || '' });
         }
-        renderImagePicker(photos); // re-render to update all order badges
+        renderImagePicker(photos);
+        renderTray();
         updateSelectionCount();
       };
       grid.appendChild(wrap);
@@ -2571,7 +2720,7 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
 
     var toShow = videos.slice(0, mediaShownCount);
     toShow.forEach(function(v) {
-      var orderIdx = selectedVideoUrls.indexOf(v.url);
+      var orderIdx = selectedMedia.findIndex(function(m){ return m.url === v.url; });
       var isSelected = orderIdx !== -1;
 
       var wrap = document.createElement('div');
@@ -2632,13 +2781,13 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
       // Select click — toggle selection
       selectAction.onclick = function(e) {
         e.stopPropagation();
-        var selIdx = selectedVideoUrls.indexOf(v.url);
-        if (selIdx !== -1) {
-          selectedVideoUrls.splice(selIdx, 1);
+        if (isMediaSelected(v.url)) {
+          removeMedia(v.url);
         } else {
-          selectedVideoUrls.push(v.url);
+          addMedia({ url: v.url, thumb: v.thumb, type: 'video', label: v.photographer || '', duration: v.duration });
         }
         renderVideoPicker(videos);
+        renderTray();
         updateSelectionCount();
       };
 
@@ -2707,12 +2856,13 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   function selectVideoFromModal() {
     var url = _previewCurrentUrl;
     if (!url) return;
-    var selIdx = selectedVideoUrls.indexOf(url);
-    if (selIdx === -1) {
-      selectedVideoUrls.push(url);
+    var v = (_previewVideoList || []).find(function(x){ return x.url === url; });
+    if (!isMediaSelected(url)) {
+      addMedia({ url: url, thumb: v ? v.thumb : '', type: 'video', label: v ? (v.photographer||'') : '', duration: v ? v.duration : 0 });
     }
     closeVideoPreview();
     renderVideoPicker(_previewVideoList);
+    renderTray();
     updateSelectionCount();
   }
 
