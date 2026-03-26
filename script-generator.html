@@ -319,6 +319,48 @@
       color: var(--text);
       white-space: pre-wrap;
     }
+    .section-text[contenteditable="true"] {
+      outline: none;
+      border: 1px solid rgba(0,229,160,0.35);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      background: rgba(0,229,160,0.04);
+      cursor: text;
+      min-height: 2rem;
+    }
+    .editing-banner {
+      display:none;
+      background:rgba(0,229,160,0.08);
+      border:1px solid rgba(0,229,160,0.2);
+      border-radius:8px;
+      padding:0.6rem 1rem;
+      font-size:0.78rem;
+      color:var(--accent);
+      margin-bottom:0.75rem;
+      align-items:center;
+      justify-content:space-between;
+      gap:0.5rem;
+    }
+    .editing-banner.visible { display:flex; }
+    /* Video trim slider */
+    .trim-row {
+      display:flex;align-items:center;gap:0.5rem;margin-top:0.35rem;font-size:0.72rem;color:var(--muted);
+    }
+    .trim-row input[type=range] {
+      flex:1;accent-color:var(--accent);height:3px;
+    }
+    /* Frame timeline */
+    .frame-timeline {
+      display:flex;gap:2px;overflow-x:auto;padding:0.5rem 0;margin-top:0.5rem;
+      scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;
+    }
+    .frame-thumb {
+      flex-shrink:0;width:42px;height:75px;border-radius:4px;cursor:pointer;
+      border:2px solid transparent;object-fit:cover;background:#000;
+      transition:border-color .15s,transform .15s;
+    }
+    .frame-thumb.active { border-color:var(--accent);transform:scaleY(1.06); }
+    .frame-thumb:hover { border-color:rgba(0,229,160,0.5); }
 
     .section-text em {
       font-style: italic;
@@ -604,6 +646,7 @@
 
     /* ── Video card ── */
     .video-card {
+      /* always visible — no .visible gate needed */
       background: var(--surface);
       border: 0.5px solid var(--border);
       border-radius: 16px;
@@ -1081,7 +1124,16 @@ Book a free consultation at leadai.guru"
         <div class="status-dot" id="statusDot"></div>
         <span id="statusLabel">Ready</span>
       </div>
-      <button class="copy-btn" id="copyBtn" onclick="copyScript()">⎘ Copy script</button>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+      <button class="copy-btn" id="editScriptBtn" onclick="toggleScriptEdit()" style="background:rgba(255,255,255,0.04);">✏ Edit</button>
+      <button class="copy-btn" id="copyBtn" onclick="copyScript()">⎘ Copy</button>
+    </div>
+    </div>
+
+    <!-- Editing banner -->
+    <div class="editing-banner" id="editingBanner">
+      <span>✏ Editing mode — click any text to change it. Changes apply to voice and video.</span>
+      <button onclick="saveScriptEdit()" style="background:var(--accent);color:#060A12;border:none;border-radius:6px;font-family:var(--font-body);font-size:0.75rem;font-weight:700;padding:0.3rem 0.85rem;cursor:pointer;">✓ Save & Apply</button>
     </div>
 
     <!-- Skeleton loader -->
@@ -1162,6 +1214,9 @@ Book a free consultation at leadai.guru"
       </button>
       <button class="btn-voice" id="stopBtn" onclick="stopVoice()" style="display:none;background:rgba(255,80,80,0.1);border-color:rgba(255,80,80,0.3);color:rgba(255,80,80,0.9);">
         ⏹ Stop
+      </button>
+      <button onclick="skipVoice()" style="background:rgba(255,255,255,0.03);border:0.5px solid var(--border);color:var(--muted2);font-family:var(--font-body);font-size:0.78rem;padding:0.55rem 1.25rem;border-radius:9px;cursor:pointer;margin-top:0.4rem;width:100%;transition:color .2s;" onmouseover="this.style.color='var(--muted)'" onmouseout="this.style.color=''">
+        Skip voice — generate silent video →
       </button>
 
       <div class="voice-error" id="voiceError"></div>
@@ -1361,7 +1416,19 @@ Book a free consultation at leadai.guru"
           Preview — <span id="frameCount">0</span> frames ready
         </div>
         <div class="canvas-wrap">
-          <canvas id="captionCanvas" width="1080" height="1920" style="width:270px;height:480px;"></canvas>
+          <canvas id="captionCanvas" width="1080" height="1920" style="width:270px;height:480px;" onclick="scrubToFrame(event)"></canvas>
+        </div>
+        <!-- Frame timeline — click any frame to jump to it -->
+        <div style="margin-top:0.5rem;">
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:0.3rem;">🎬 Frame timeline — click to jump · drag to scrub</div>
+          <div class="frame-timeline" id="frameTimeline"></div>
+        </div>
+        <!-- Duration control -->
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap;">
+          <label style="font-size:0.72rem;color:var(--muted);white-space:nowrap;">✂ Target duration:</label>
+          <input type="number" id="targetDuration" min="5" max="180" placeholder="e.g. 15" style="width:65px;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:0.82rem;padding:0.3rem 0.5rem;outline:none;" oninput="applyTargetDuration()"/>
+          <span style="font-size:0.72rem;color:var(--muted2);">sec — trims video to this length</span>
+          <button onclick="resetDuration()" style="font-size:0.7rem;color:var(--muted2);background:none;border:none;cursor:pointer;padding:0;">↺ Reset</button>
         </div>
         <div class="video-controls">
           <button class="btn-play-preview" id="previewBtn" onclick="previewAnimation()">▶ Play with Voice</button>
@@ -1687,15 +1754,15 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
         const content = match[1].trim();
         wordCount += content.split(/\s+/).length;
         html += `
-          <div class="script-section">
+          <div class="script-section" data-key="${key}">
             <div class="section-tag ${tagClass}">${label}</div>
-            <div class="section-text">${escapeHtml(content)}</div>
+            <div class="section-text" data-section="${key}">${escapeHtml(content)}</div>
           </div>`;
       }
     });
 
     if (!html) {
-      html = `<div class="section-text">${escapeHtml(text)}</div>`;
+      html = `<div class="section-text" data-section="full">${escapeHtml(text)}</div>`;
       wordCount = text.split(/\s+/).length;
     }
 
@@ -1740,6 +1807,62 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     const dot = document.getElementById('statusDot');
     dot.classList.toggle('loading', loading);
     document.getElementById('statusLabel').textContent = loading ? 'Generating…' : 'Ready';
+  }
+
+  var scriptEditing = false;
+
+  function toggleScriptEdit() {
+    scriptEditing = !scriptEditing;
+    var btn = document.getElementById('editScriptBtn');
+    var banner = document.getElementById('editingBanner');
+    var sections = document.querySelectorAll('.section-text');
+
+    if (scriptEditing) {
+      sections.forEach(function(el){ el.contentEditable = 'true'; });
+      btn.textContent = '✓ Done';
+      btn.style.background = 'rgba(0,229,160,0.15)';
+      btn.style.color = 'var(--accent)';
+      if (banner) banner.classList.add('visible');
+      // Focus first section
+      if (sections[0]) sections[0].focus();
+    } else {
+      saveScriptEdit();
+    }
+  }
+
+  function saveScriptEdit() {
+    scriptEditing = false;
+    var btn = document.getElementById('editScriptBtn');
+    var banner = document.getElementById('editingBanner');
+    var sections = document.querySelectorAll('.section-text');
+
+    // Rebuild lastScript from edited sections
+    var rebuilt = '';
+    sections.forEach(function(el) {
+      var key = el.dataset.section;
+      var text = el.innerText || el.textContent || '';
+      if (key && key !== 'full') {
+        rebuilt += '[' + key.toUpperCase() + ']\n' + text.trim() + '\n\n';
+      } else {
+        rebuilt += text.trim();
+      }
+      el.contentEditable = 'false';
+    });
+
+    if (rebuilt.trim()) {
+      lastScript = rebuilt.trim();
+      // Sync whisper captions and video frames need rebuild
+      whisperCaptions = [];
+      var sb = document.getElementById('syncBadge');
+      if (sb) sb.style.display = 'none';
+      // Update live preview if video exists
+      if (videoFrames.length) livePreview();
+    }
+
+    btn.textContent = '✏ Edit';
+    btn.style.background = 'rgba(255,255,255,0.04)';
+    btn.style.color = '';
+    if (banner) banner.classList.remove('visible');
   }
 
   function copyScript() {
@@ -2308,7 +2431,104 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     renderFrame(canvas, videoFrames[previewIdx]);
   }
 
-  // ── Drag-to-reorder tray items ──
+  // ── Frame timeline — render thumbnails after video is generated ──
+  function buildFrameTimeline() {
+    var tl = document.getElementById('frameTimeline');
+    if (!tl || !videoFrames.length) return;
+    tl.innerHTML = '';
+
+    // Show max 30 frames in timeline for performance
+    var step = Math.max(1, Math.floor(videoFrames.length / 30));
+    var canvas = document.getElementById('captionCanvas');
+    var thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 42; thumbCanvas.height = 75;
+
+    for (var i = 0; i < videoFrames.length; i += step) {
+      (function(idx) {
+        var img = document.createElement('div');
+        img.className = 'frame-thumb' + (idx === 0 ? ' active' : '');
+        img.style.cssText = 'flex-shrink:0;width:42px;height:75px;border-radius:4px;cursor:pointer;border:2px solid transparent;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--muted);transition:border-color .15s;';
+        img.title = 'Frame ' + (idx+1);
+        img.textContent = idx + 1;
+        img.onclick = function() {
+          // Jump to this frame
+          document.querySelectorAll('.frame-thumb').forEach(function(t){ t.classList.remove('active'); t.style.borderColor='transparent'; });
+          img.classList.add('active'); img.style.borderColor='var(--accent)';
+          renderFrame(canvas, videoFrames[idx]);
+        };
+        tl.appendChild(img);
+      })(i);
+    }
+  }
+
+  function scrubToFrame(event) {
+    if (!videoFrames.length) return;
+    // Click on canvas jumps to proportional frame
+    var rect = event.target.getBoundingClientRect();
+    var x = event.clientX - rect.left;
+    var ratio = x / rect.width;
+    var idx = Math.min(Math.floor(ratio * videoFrames.length), videoFrames.length - 1);
+    var canvas = document.getElementById('captionCanvas');
+    renderFrame(canvas, videoFrames[idx]);
+  }
+
+  // ── Video trim controls ──
+  function setTrimStart(idx, val, siblingEl) {
+    val = parseFloat(val);
+    if (selectedMedia[idx]) {
+      selectedMedia[idx].trimStart = val;
+      if (siblingEl) siblingEl.parentNode.querySelector('span').textContent =
+        '✂ ' + val.toFixed(0) + 's–' + (selectedMedia[idx].trimEnd || selectedMedia[idx].duration).toFixed(0) + 's';
+    }
+  }
+  function setTrimEnd(idx, val, siblingEl) {
+    val = parseFloat(val);
+    if (selectedMedia[idx]) {
+      selectedMedia[idx].trimEnd = val;
+      if (siblingEl) siblingEl.parentNode.querySelector('span').textContent =
+        '✂ ' + (selectedMedia[idx].trimStart || 0).toFixed(0) + 's–' + val.toFixed(0) + 's';
+    }
+  }
+
+  // ── Target duration — trim video to specific length ──
+  function applyTargetDuration() {
+    var target = parseInt(document.getElementById('targetDuration').value);
+    if (!target || target < 1 || !videoFrames.length) return;
+
+    var canvas = document.getElementById('captionCanvas');
+    var wps = parseFloat(document.getElementById('videoSpeed')?.value || '1') || 1;
+    var fh = parseInt(document.getElementById('frameHoldMs')?.value || '2000') / 1000;
+    var secsPerFrame = fh / wps;
+    var maxFrames = Math.round(target / secsPerFrame);
+
+    if (maxFrames < videoFrames.length) {
+      videoFrames = videoFrames.slice(0, maxFrames);
+      // Recalculate progress
+      videoFrames.forEach(function(f, i) { f.progress = (i+1)/videoFrames.length; });
+      document.getElementById('frameCount').textContent = videoFrames.length;
+      renderFrame(canvas, videoFrames[0]);
+      buildFrameTimeline();
+    }
+  }
+
+  function resetDuration() {
+    document.getElementById('targetDuration').value = '';
+    // Re-generate video to restore all frames
+    if (lastScript || selectedMedia.length) generateVideo();
+  }
+
+  // ── Skip voice / caption toggles ──
+  function skipVoice() {
+    var audioEl = document.getElementById('elAudio');
+    if (audioEl) { audioEl.src = ''; audioEl.style.display = 'none'; }
+    elAudioBlob = null;
+    whisperCaptions = [];
+    var sb = document.getElementById('syncBadge');
+    if (sb) sb.style.display = 'none';
+    document.getElementById('voiceStatusText').textContent = 'Voiceover skipped — video will play silently.';
+    document.getElementById('audioWrap').classList.add('visible');
+    document.getElementById('audioIndicator').style.display = 'none';
+  }
   var _dragSrcIdx = -1;
   function makeTrayItemDraggable(chip, idx) {
     chip.draggable = true;
@@ -2390,6 +2610,21 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
       chip.appendChild(img); chip.appendChild(num); chip.appendChild(icon); chip.appendChild(del);
       makeTrayItemDraggable(chip, idx);
       items.appendChild(chip);
+
+      // Add trim row for videos
+      if (m.type === 'video' && m.duration > 0) {
+        var trimRow = document.createElement('div');
+        trimRow.className = 'trim-row';
+        var startV = m.trimStart || 0;
+        var endV   = m.trimEnd   || m.duration;
+        trimRow.innerHTML =
+          '<span>✂ ' + startV.toFixed(0) + 's–' + endV.toFixed(0) + 's</span>' +
+          '<input type="range" min="0" max="' + m.duration + '" step="0.5" value="' + startV + '" title="Trim start" ' +
+          'oninput="setTrimStart(' + idx + ',this.value,this.nextElementSibling)"/>' +
+          '<input type="range" min="0" max="' + m.duration + '" step="0.5" value="' + endV + '" title="Trim end" ' +
+          'oninput="setTrimEnd(' + idx + ',this.value,this.previousElementSibling)"/>';
+        items.appendChild(trimRow);
+      }
     });
   }
   var localMediaElements = [];  // stores {type, el, blobUrl, name} from upload/webcam
@@ -2973,21 +3208,32 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     });
   }
 
-  function loadVideoElement(url) {
+  function loadVideoElement(url, opts) {
+    opts = opts || {};
     return new Promise(function(resolve, reject) {
       var vid = document.createElement('video');
       vid.crossOrigin = 'anonymous';
       vid.muted = true;
       vid.loop = true;
       vid.playsInline = true;
+      vid.preload = 'auto';
+      vid._startSec = parseFloat(opts.startSec) || 0;
+      vid._endSec   = parseFloat(opts.endSec) || null;
+
       vid.oncanplay = function() {
+        if (vid._startSec > 0) vid.currentTime = vid._startSec;
         vid.play().catch(function(){});
+        // Trim end — loop back to start when trim end reached
+        if (vid._endSec) {
+          vid.addEventListener('timeupdate', function() {
+            if (vid.currentTime >= vid._endSec) vid.currentTime = vid._startSec;
+          });
+        }
         resolve(vid);
       };
-      vid.onerror = function() { reject(new Error('Failed to load video')); };
+      vid.onerror = function() { reject(new Error('Failed to load video: ' + url)); };
       vid.src = url;
       vid.load();
-      // Timeout fallback
       setTimeout(function() { resolve(vid); }, 5000);
     });
   }
@@ -3244,7 +3490,7 @@ Return ONLY valid JSON, no markdown:
           var sm = selectedMedia[ii];
           try {
             if (sm.type === 'video') {
-              var vel = await loadVideoElement(sm.url);
+              var vel = await loadVideoElement(sm.url, { startSec: sm.trimStart, endSec: sm.trimEnd });
               mediaElements.push({ type:'video', el:vel });
             } else {
               var iel = await loadImage(sm.url);
@@ -3298,6 +3544,9 @@ Return ONLY valid JSON, no markdown:
       document.getElementById('videoPreview').classList.add('visible');
       progressLabel.style.display = 'none';
       setTimeout(function(){ progressWrap.classList.remove('visible'); }, 600);
+
+      // Build frame timeline
+      setTimeout(buildFrameTimeline, 100);
 
       // Save to history after a short delay so canvas has rendered
       setTimeout(saveVideoToHistory, 800);
