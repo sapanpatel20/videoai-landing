@@ -311,7 +311,7 @@
     .voice-card {
       background:var(--surface); border:1px solid var(--border);
       border-radius:var(--r-lg); overflow:hidden; margin-bottom:1.25rem;
-      display:none; animation:fadeUp .4s ease both;
+      display:block; animation:fadeUp .4s ease both;
     }
     .voice-card.visible { display:block; }
     .voice-header {
@@ -885,11 +885,26 @@ Book a free consultation at leadai.guru"
 
       <!-- PEXELS PANEL -->
       <div class="bg-panel active" id="bgpanel-pexels">
-        <div style="display:flex;gap:0.75rem;">
-          <input type="text" id="imageSearch" class="field-box" list="searchHistory" placeholder="Search Pexels — add multiple searches" style="flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.95rem;padding:0.75rem 1rem;outline:none;" />
+        <div style="display:flex;gap:0.5rem;">
+          <input type="text" id="imageSearch" class="field-box" list="searchHistory"
+            placeholder="e.g. Dubai apartment, almond tree, gym workout"
+            style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:0.9rem;padding:0.7rem 0.9rem;outline:none;"
+            onkeydown="if(event.key==='Enter')fetchImages(false)"/>
           <datalist id="searchHistory"></datalist>
-          <button onclick="fetchImages()" style="background:rgba(255,255,255,0.06);border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:0.85rem;padding:0.75rem 1rem;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">🔍 Add</button>
-          <button onclick="clearSearchResults()" title="Clear search results and start fresh" style="background:rgba(255,255,255,0.03);border:0.5px solid var(--border);color:var(--muted2);font-family:var(--font-body);font-size:0.82rem;padding:0.75rem 0.75rem;border-radius:8px;cursor:pointer;white-space:nowrap;" onmouseover="this.style.color='#F0EEE8'" onmouseout="this.style.color=''">↺</button>
+          <button onclick="fetchImages(false)" id="searchBtn"
+            style="background:var(--accent);color:#060A12;font-family:var(--font-body);font-size:0.85rem;font-weight:600;padding:0.7rem 1rem;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;min-width:80px;">
+            🔍 Search
+          </button>
+          <button onclick="fetchImages(true)" id="addMoreBtn"
+            style="background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);font-family:var(--font-body);font-size:0.82rem;padding:0.7rem 0.75rem;border-radius:8px;cursor:pointer;white-space:nowrap;"
+            title="Add more results to current selection">
+            ＋ Add
+          </button>
+          <button onclick="clearSearchResults()"
+            title="Clear search results (keeps your selections)"
+            style="background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--muted2);font-family:var(--font-body);font-size:0.82rem;padding:0.7rem 0.7rem;border-radius:8px;cursor:pointer;">
+            ↺
+          </button>
         </div>
         <div id="imagePicker" style="display:none;margin-top:0.75rem;">
 
@@ -928,7 +943,13 @@ Book a free consultation at leadai.guru"
             <button id="loadMoreBtn" onclick="loadMoreMedia()" style="display:none;font-size:0.75rem;color:var(--muted);background:rgba(255,255,255,0.03);border:0.5px solid var(--border);padding:0.4rem 1.2rem;border-radius:7px;cursor:pointer;">Load more</button>
           </div>
 
-          <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.5rem;">Media from <a href="https://pexels.com" target="_blank" style="color:var(--muted);">Pexels</a> — free to use</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.6rem;flex-wrap:wrap;gap:0.4rem;">
+            <div style="font-size:0.72rem;color:var(--muted2);">Media from <a href="https://pexels.com" target="_blank" style="color:var(--muted);">Pexels</a> — free to use</div>
+            <div style="display:flex;gap:0.4rem;">
+              <button onclick="fetchImages(true)" style="font-size:0.7rem;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);padding:0.2rem 0.65rem;border-radius:5px;cursor:pointer;font-family:var(--font-body);">＋ Load more results</button>
+              <button onclick="clearSearchResults()" style="font-size:0.7rem;color:var(--muted);background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:0.2rem 0.65rem;border-radius:5px;cursor:pointer;font-family:var(--font-body);">↺ New search</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1026,7 +1047,7 @@ Book a free consultation at leadai.guru"
         </div>
       </div>
       <div style="font-size:0.72rem;color:var(--muted2);margin-top:0.35rem;margin-bottom:0.75rem;">
-        💡 Changes above update the preview canvas instantly — no need to regenerate.
+        💡 Caption style, brightness and speed update the preview instantly. Search images below — select as many as you want before generating.
       </div>
 
       <button class="btn-video" id="videoBtn" onclick="generateVideo()">
@@ -1707,6 +1728,8 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
           cloned.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; g2.appendChild(o); });
           select.appendChild(g2);
         }
+        // Auto-select first voice
+        if (select.options.length > 0) select.selectedIndex = 0;
         // Use all voices if no premade/cloned split
         if (!premade.length && !cloned.length) {
           data.voices.forEach(function(v){ var o=document.createElement('option'); o.value=v.id; o.textContent=v.name; select.appendChild(o); });
@@ -1729,6 +1752,7 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
           var o = document.createElement('option'); o.value = v.id; o.textContent = v.name;
           select.appendChild(o);
         });
+        if (select.options.length > 0 && !select.value) select.selectedIndex = 0;
         // Show a note below the select
         var old = document.getElementById('elFallbackNote');
         if (old) old.remove();
@@ -2081,34 +2105,37 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     return (typeof getSelectedLocalMedia === 'function') ? getSelectedLocalMedia().length : 0;
   }
 
-  // ── Live Preview — redraws canvas instantly when settings change ──
+  // ── Live Preview — updates all frames instantly when settings change ──
   function livePreview() {
     if (!videoFrames.length) return;
     var canvas = document.getElementById('captionCanvas');
     var capStyle = document.getElementById('captionStyle').value;
-    var overlay = parseFloat(document.getElementById('overlayOpacity').value) || 0.3;
-    var wpfVal = document.getElementById('wordsPerFrame').value;
-    var section = document.getElementById('videoSection').value;
+    var overlay  = parseFloat(document.getElementById('overlayOpacity').value) || 0.3;
+    var wpfVal   = (document.getElementById('wordsPerFrame') || {}).value || '5';
+    var section  = (document.getElementById('videoSection') || {}).value || 'full';
 
-    // Update all frame settings
-    videoFrames.forEach(function(f) { f.cap = capStyle; f.overlay = overlay; });
-
-    // Rebuild text chunks if words-per-caption changed
-    if (wpfVal !== 'none' && section !== 'none' && lastScript && lastScript.trim()) {
+    // Rebuild caption text from script if changed
+    var newText = '';
+    if (wpfVal !== 'none' && section !== 'none' && capStyle !== 'none' && lastScript && lastScript.trim()) {
       var wpf = parseInt(wpfVal) || 5;
-      var text = getScriptSection(section) || lastScript;
-      var chunks = chunkText(text, wpf);
-      if (chunks.length) {
+      newText = getScriptSection(section) || lastScript;
+      var newChunks = chunkText(newText, wpf);
+      if (newChunks.length) {
+        // If chunk count changed, re-distribute across existing frames
         for (var i = 0; i < videoFrames.length; i++) {
-          videoFrames[i].text = chunks[Math.min(Math.floor(i * chunks.length / videoFrames.length), chunks.length-1)];
+          var ci = Math.min(Math.floor(i * newChunks.length / videoFrames.length), newChunks.length-1);
+          videoFrames[i].text = newChunks[ci];
         }
       }
-    } else if (wpfVal === 'none' || section === 'none' || capStyle === 'none') {
+    } else {
       videoFrames.forEach(function(f){ f.text = ''; });
     }
 
-    // Redraw current frame as instant preview
-    var previewIdx = videoFrames.length > 1 ? Math.floor(videoFrames.length/2) : 0;
+    // Update style on all frames
+    videoFrames.forEach(function(f){ f.cap = capStyle; f.overlay = overlay; });
+
+    // Redraw preview frame (middle frame shows a good representative sample)
+    var previewIdx = videoFrames.length > 1 ? Math.floor(videoFrames.length / 2) : 0;
     renderFrame(canvas, videoFrames[previewIdx]);
   }
 
@@ -2174,28 +2201,14 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   // ── Target duration — trim video to specific length ──
   function applyTargetDuration() {
     var target = parseInt(document.getElementById('targetDuration').value);
-    if (!target || target < 1 || !videoFrames.length) return;
-
-    var canvas = document.getElementById('captionCanvas');
-    var wps = parseFloat(document.getElementById('videoSpeed')?.value || '1') || 1;
-    var fh = parseInt(document.getElementById('frameHoldMs')?.value || '2000') / 1000;
-    var secsPerFrame = fh / wps;
-    var maxFrames = Math.round(target / secsPerFrame);
-
-    if (maxFrames < videoFrames.length) {
-      videoFrames = videoFrames.slice(0, maxFrames);
-      // Recalculate progress
-      videoFrames.forEach(function(f, i) { f.progress = (i+1)/videoFrames.length; });
-      document.getElementById('frameCount').textContent = videoFrames.length;
-      renderFrame(canvas, videoFrames[0]);
-      buildFrameTimeline();
-    }
+    if (!target || target < 1) return;
+    // Just regenerate — it's the cleanest approach
+    generateVideo();
   }
 
   function resetDuration() {
     document.getElementById('targetDuration').value = '';
-    // Re-generate video to restore all frames
-    if (lastScript || selectedMedia.length) generateVideo();
+    generateVideo();
   }
 
   // ── Skip voice / caption toggles ──
@@ -2521,13 +2534,16 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
   }
 
   // Fetch both photos AND videos from Pexels via our proxy
-  async function fetchImages() {
+  async function fetchImages(addMode) {
+    // addMode=true  → add new results to existing pool (keep old)
+    // addMode=false → fresh search, replace pool
     var query = document.getElementById('imageSearch').value.trim();
-    if (!query) { showVideoError('Enter an image theme first.'); return; }
+    if (!query) { showVideoError('Enter a search topic first.'); return; }
 
-    var btn = document.querySelector('[onclick="fetchImages()"]');
-    btn.textContent = '⏳ Searching...';
-    btn.disabled = true;
+    var searchBtn = document.getElementById('searchBtn');
+    var addBtn    = document.getElementById('addMoreBtn');
+    if (searchBtn) { searchBtn.textContent = '⏳'; searchBtn.disabled = true; }
+    if (addBtn)    addBtn.disabled = true;
     hideVideoError();
 
     try {
@@ -2535,23 +2551,25 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
       var data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      // ACCUMULATE results — new search adds to existing, doesn't replace
       var newPhotos = data.photos || [];
       var newVideos = data.videos || [];
 
-      // Merge: keep existing + add new ones not already in list
-      var existingPhotoUrls = allPhotos.map(function(p){ return p.url; });
-      newPhotos.forEach(function(p){
-        if (existingPhotoUrls.indexOf(p.url) === -1) allPhotos.push(p);
-      });
-      var existingVideoUrls = allVideos.map(function(v){ return v.url; });
-      newVideos.forEach(function(v){
-        if (existingVideoUrls.indexOf(v.url) === -1) allVideos.push(v);
-      });
+      if (!addMode) {
+        // Replace — fresh search
+        allPhotos = newPhotos;
+        allVideos = newVideos;
+      } else {
+        // Accumulate — add new results to existing pool
+        var existingPhotoUrls = allPhotos.map(function(p){ return p.url; });
+        newPhotos.forEach(function(p){ if (existingPhotoUrls.indexOf(p.url) === -1) allPhotos.push(p); });
+        var existingVideoUrls = allVideos.map(function(v){ return v.url; });
+        newVideos.forEach(function(v){ if (existingVideoUrls.indexOf(v.url) === -1) allVideos.push(v); });
+      }
 
       // Show current search label
       var lbl = document.getElementById('currentSearchLabel');
-      if (lbl) lbl.textContent = 'Showing results for: ' + query + ' (' + newPhotos.length + ' photos, ' + newVideos.length + ' videos added)';
+      if (lbl) lbl.textContent = (addMode ? '＋ Added' : 'Results for') + ': ' + query +
+        ' — ' + allPhotos.length + ' photos, ' + allVideos.length + ' videos';
 
       mediaShownCount = 9;
 
@@ -2580,8 +2598,8 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
         showVideoError('Image search failed: ' + msg);
       }
     } finally {
-      btn.textContent = '🔍 Search Images';
-      btn.disabled = false;
+      if (searchBtn) { searchBtn.textContent = '🔍 Search'; searchBtn.disabled = false; }
+      if (addBtn) addBtn.disabled = false;
     }
   }
 
@@ -3218,10 +3236,23 @@ Return ONLY valid JSON, no markdown:
         await new Promise(function(r){ setTimeout(r, 4); });
       }
 
+      // Apply target duration trim if set
+      var targetSecs = parseInt((document.getElementById('targetDuration') || {}).value || '0');
+      if (targetSecs > 0 && videoFrames.length > 0) {
+        var fhMs = parseInt((document.getElementById('frameHoldMs') || {}).value || '2000');
+        var spd  = parseFloat((document.getElementById('videoSpeed') || {}).value || '1.0');
+        var secsPerFrame = (fhMs / 1000) / spd;
+        var maxF = Math.max(1, Math.round(targetSecs / secsPerFrame));
+        if (maxF < videoFrames.length) {
+          videoFrames = videoFrames.slice(0, maxF);
+          videoFrames.forEach(function(f,i){ f.progress = (i+1)/videoFrames.length; });
+        }
+      }
+
       // Draw first frame preview
       renderFrame(canvas, videoFrames[0]);
 
-      document.getElementById('frameCount').textContent = chunks.length;
+      document.getElementById('frameCount').textContent = videoFrames.length;
       document.getElementById('videoPreview').classList.add('visible');
       progressLabel.style.display = 'none';
       setTimeout(function(){ progressWrap.classList.remove('visible'); }, 600);
@@ -3364,37 +3395,52 @@ Return ONLY valid JSON, no markdown:
     }
   };
 
-  // ── Download video only (no audio) ──
+  // ── Download video (silent) ──
   async function downloadVideo() {
     if (!videoFrames.length) { showVideoError('Generate the video first.'); return; }
     var btn = document.getElementById('dlVideoBtn');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Recording...'; }
 
     var canvas = document.getElementById('captionCanvas');
-    if (!canvas.captureStream) { showVideoError('Use Chrome or Edge for video download.'); if(btn){btn.disabled=false;btn.textContent='⬇ Download MP4';} return; }
+    if (!canvas.captureStream) {
+      showVideoError('Use Chrome or Edge for video download.');
+      if (btn) { btn.disabled=false; btn.textContent='⬇ Download'; }
+      return;
+    }
 
-    var stream = canvas.captureStream(25);
-    var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-    var rec = new MediaRecorder(stream, { mimeType: mime });
+    var fps = 30;
+    var stream = canvas.captureStream(fps);
+    var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+      .find(function(m){ return MediaRecorder.isTypeSupported(m); }) || 'video/webm';
+    var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4000000 });
     var chunks = [];
     rec.ondataavailable = function(e){ if(e.data.size>0) chunks.push(e.data); };
     rec.onstop = function(){
-      var blob = new Blob(chunks, { type: 'video/webm' });
+      var blob = new Blob(chunks, { type: mime });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
-      a.href = url; a.download = 'leadai-video.webm'; a.click();
-      if (btn) { btn.disabled = false; btn.textContent = '⬇ Download MP4'; }
+      a.href = url;
+      // .mp4 extension — TikTok/Instagram accept webm under .mp4 name
+      a.download = 'leadai-video-' + Date.now() + '.mp4';
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+      if (btn) { btn.disabled=false; btn.textContent='⬇ Download Video'; }
     };
 
+    var fhMs = parseInt((document.getElementById('frameHoldMs')||{}).value || '2000');
+    var speed = parseFloat((document.getElementById('videoSpeed')||{}).value || '1.0');
+    var msPerFrame = Math.round(fhMs / speed);
+
     rec.start();
-    // Play through all frames at 2s each
     var i = 0;
+    renderFrame(canvas, videoFrames[0]);
     function nextFrame() {
-      if (i >= videoFrames.length) { rec.stop(); return; }
-      renderFrame(canvas, videoFrames[i++]);
-      setTimeout(nextFrame, 2000);
+      i++;
+      if (i >= videoFrames.length) { setTimeout(function(){ rec.stop(); }, 200); return; }
+      renderFrame(canvas, videoFrames[i]);
+      setTimeout(nextFrame, msPerFrame);
     }
-    nextFrame();
+    setTimeout(nextFrame, msPerFrame);
   }
 
   // ── Download video WITH audio merged — pure browser, zero dependencies ──
@@ -3458,7 +3504,7 @@ Return ONLY valid JSON, no markdown:
         var url  = URL.createObjectURL(blob);
         var a    = document.createElement('a');
         a.href = url;
-        a.download = 'leadai-video-with-voice.webm';
+        a.download = 'leadai-video-with-voice-' + Date.now() + '.mp4';
         a.click();
         if (bar)  { bar.style.width = '100%'; }
         if (lbl)  { lbl.textContent = '✓ Downloaded! Instagram, TikTok and YouTube all accept .webm files.'; }
@@ -3467,11 +3513,9 @@ Return ONLY valid JSON, no markdown:
       };
 
       // ── Animate canvas in sync with audio ──
-      // Calculate ms per caption frame from audio duration
-      var audioDuration = audioEl.duration;
-      var msPerFrame = (audioDuration && isFinite(audioDuration))
-        ? Math.max(800, Math.min(4000, (audioDuration * 1000) / videoFrames.length))
-        : 2000;
+      var fhMs2   = parseInt((document.getElementById('frameHoldMs')||{}).value || '2000');
+      var speed2  = parseFloat((document.getElementById('videoSpeed')||{}).value || '1.0');
+      var msPerFrame = Math.round(fhMs2 / speed2);
 
       if (lbl) lbl.textContent = 'Recording... do not close this tab.';
       if (bar) bar.style.width = '10%';
@@ -3788,8 +3832,8 @@ Return ONLY valid JSON, no markdown:
 
     } catch(err) {
       status.textContent = '⚠ ' + err.message;
-      if (err.message.includes('APIFY_API_KEY')) {
-        status.innerHTML = '⚠ Add APIFY_API_KEY to Vercel env vars — sign up free at <a href="https://apify.com" target="_blank" style="color:var(--accent)">apify.com</a>';
+      if (err.message.includes('APIFY_API_KEY') || err.message.includes('not set')) {
+        status.innerHTML = '⚠ APIFY_API_KEY not set — <a href="https://apify.com" target="_blank" style="color:var(--accent)">sign up free at apify.com</a>, get your API key, add it to Vercel → Environment Variables → APIFY_API_KEY, then redeploy.';
       }
     }
 
