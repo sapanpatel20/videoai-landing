@@ -1189,11 +1189,14 @@ Book a free consultation at leadai.guru"
     if (params.get('owner') === 'leadai2026') {
       localStorage.setItem('leadai_paid', 'true');
       localStorage.setItem('leadai_plan', 'owner');
-      localStorage.setItem('leadai_credits', '9999');
-      // Clean URL without reloading
-      var url = window.location.pathname;
-      window.history.replaceState({}, '', url);
-      console.log('Owner mode activated — unlimited access enabled');
+      localStorage.setItem('leadai_credits', '99999');
+      localStorage.setItem('leadai_owner', 'leadai2026');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    // Also activate if previously set
+    if (localStorage.getItem('leadai_owner') === 'leadai2026') {
+      localStorage.setItem('leadai_paid', 'true');
+      localStorage.setItem('leadai_plan', 'owner');
     }
   })();
 
@@ -1210,27 +1213,48 @@ Book a free consultation at leadai.guru"
 
   function incrementUsage() {
     var u = getUsage();
-    if (u.paid) return; // subscription — no limit tracked
+    if (u.paid) return;
     if (u.credits > 0) {
-      // use one purchased credit
       localStorage.setItem('leadai_credits', String(u.credits - 1));
       updateUsageUI(u.count);
       return;
     }
-    // free tier
     var next = u.count + 1;
     localStorage.setItem('leadai_video_count', next.toString());
     updateUsageUI(next);
-    if (next >= FREE_LIMIT) {
-      setTimeout(function() { showPaywall(); }, 1500);
+    if (next === FREE_LIMIT) {
+      // Soft upsell toast — not a hard block
+      setTimeout(function() { showSoftUpsell(); }, 2000);
     }
+  }
+
+  function showSoftUpsell() {
+    var existing = document.getElementById('softUpsellToast');
+    if (existing) return;
+    var toast = document.createElement('div');
+    toast.id = 'softUpsellToast';
+    toast.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:888;background:var(--surface);border:1px solid var(--accent-border);border-radius:14px;padding:1rem 1.5rem;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.4);animation:fadeUp .3s ease both;';
+    toast.innerHTML = [
+      '<div style="font-size:0.78rem;font-weight:600;color:#00D97E;margin-bottom:0.3rem;">You have used your 3 free videos</div>',
+      '<div style="font-size:0.82rem;color:rgba(237,240,247,0.52);line-height:1.5;margin-bottom:0.75rem;">Keep generating — videos include a LeadAI watermark. Upgrade to remove it.</div>',
+      '<div style="display:flex;gap:0.5rem;">',
+      '<a href="pricing.html" style="flex:1;text-align:center;background:#00D97E;color:#060A12;font-weight:600;font-size:0.82rem;padding:0.5rem;border-radius:8px;text-decoration:none;">Upgrade from $3</a>',
+      '<button id="closeUpsell" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);color:rgba(237,240,247,0.52);font-size:0.82rem;padding:0.5rem;border-radius:8px;cursor:pointer;">Keep watermark</button>',
+      '</div>'
+    ].join('')
+    document.body.appendChild(toast);
+    var cu=document.getElementById('closeUpsell'); if(cu) cu.onclick=function(){toast.remove();};
+    setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 12000);
   }
 
   function checkUsageBeforeGenerate() {
     var u = getUsage();
     if (u.paid) return true;          // active subscription
     if (u.credits > 0) return true;   // has purchased credits
-    if (u.count >= FREE_LIMIT) { showPaywall(); return false; }
+    if (u.count >= FREE_LIMIT) {
+      // Allow unlimited with watermark — show soft upsell after generation
+      return true;
+    }
     return true;
   }
 
@@ -2978,12 +3002,19 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     ctx.fillStyle = topGrad;
     ctx.fillRect(0, 0, W, H * 0.25);
 
-    // Watermark — small top-left
-    ctx.font = '600 30px sans-serif';
-    ctx.fillStyle = 'rgba(0,229,160,0.75)';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText('LeadAI', 48, 52);
+    // Watermark — only for free users
+    if (!getUsage().paid) {
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('leadai.guru', W/2, H/2 - 60);
+      ctx.font = '600 28px sans-serif';
+      ctx.fillStyle = 'rgba(0,217,126,0.75)';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('LeadAI', 40, 48);
+    }
 
     // Caption — bottom third, like TikTok/VEED
     var cap = getCaptionStyle(captionStyleKey);
@@ -3029,7 +3060,16 @@ Keep it energetic, specific, and optimized for ${platform} viewers. Do not add a
     ctx.font = '700 38px sans-serif';
     ctx.fillStyle = 'rgba(0,229,160,0.8)';
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText('LeadAI', W/2, 80);
+    if (!getUsage().paid) {
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText('leadai.guru', W/2, H/2);
+      ctx.font = '600 28px sans-serif';
+      ctx.fillStyle = 'rgba(0,217,126,0.7)';
+      ctx.textAlign = 'center';
+      ctx.fillText('LeadAI', W/2, 80);
+    }
     var cap = getCaptionStyle(captionStyleKey);
     ctx.textBaseline = 'middle';
     ctx.font = cap.weight + ' ' + cap.size + 'px sans-serif';
