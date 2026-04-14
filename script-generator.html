@@ -700,9 +700,39 @@ Book a free consultation at leadai.guru"
     <!-- ── TRENDING PANEL ── -->
     <div class="trending-panel" id="trendingPanel">
       <div class="card-title"><div class="card-title-dot"></div> 🔥 Find Trending Videos in Your Niche</div>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6;">
-        Pick your niche → we scrape the top trending TikToks right now → Claude rewrites the script uniquely for your business → generate your video.
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.6;">
+        We scrape viral TikTok videos for your niche → Claude rewrites the script for your business → you generate a ready-to-post video.
       </p>
+      <!-- Platform guide -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--r-md);padding:0.875rem 1rem;margin-bottom:1.25rem;">
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem;">📱 Where to find viral inspiration manually</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.82rem;color:var(--muted);line-height:1.5;">
+          <div>
+            <span style="color:var(--text);font-weight:500;">TikTok</span> — Best for raw viral ideas. Search your niche hashtag, filter by "This week", sort by Most Liked.
+            <a href="https://www.tiktok.com/explore" target="_blank" style="color:var(--accent);margin-left:0.4rem;font-size:0.75rem;">Open TikTok ↗</a>
+          </div>
+          <div>
+            <span style="color:var(--text);font-weight:500;">Instagram Reels</span> — Best for local business audiences (real estate, gyms, restaurants). Search hashtag → tap Reels tab → sort by Most Recent.
+            <a href="https://www.instagram.com/explore" target="_blank" style="color:var(--accent);margin-left:0.4rem;font-size:0.75rem;">Open Instagram ↗</a>
+          </div>
+          <div>
+            <span style="color:var(--text);font-weight:500;">YouTube Shorts</span> — Best for mortgage, coaching, finance niches. Search "[your niche] tips" → filter Shorts → sort by View count.
+            <a href="https://www.youtube.com/shorts/" target="_blank" style="color:var(--accent);margin-left:0.4rem;font-size:0.75rem;">Open YouTube Shorts ↗</a>
+          </div>
+        </div>
+        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border);font-size:0.75rem;color:var(--muted2);">
+          💡 Found a viral script? Copy the caption text → paste it in the box below → click ✦ Rewrite to adapt it for your niche instantly.
+        </div>
+      </div>
+      <!-- Manual paste for when scraper doesn't work -->
+      <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;">✎ Paste a viral script manually (optional)</div>
+        <div style="display:flex;gap:0.5rem;">
+          <textarea id="manualTrendText" placeholder="Paste any viral TikTok/Instagram/YouTube caption or script here, then click Rewrite below..." style="flex:1;min-height:72px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font-body);font-size:0.85rem;padding:0.6rem 0.8rem;outline:none;resize:vertical;"></textarea>
+        </div>
+        <button onclick="rewriteManualScript()" style="margin-top:0.4rem;width:100%;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-body);font-size:0.82rem;font-weight:600;padding:0.5rem;border-radius:var(--r-sm);cursor:pointer;">✦ Rewrite This Script For My Business</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:0.75rem;text-align:center;">— or auto-scrape TikTok below —</div>
 
       <!-- Quick niche chips -->
       <div class="trend-niche-row" id="nicheChips">
@@ -3826,6 +3856,33 @@ Return ONLY valid JSON, no markdown:
   // TRENDING VIDEO ENGINE
   // ══════════════════════════════════════════════════
   var currentTrendNiche = 'real estate Dubai';
+
+  async function rewriteManualScript() {
+    var text = document.getElementById('manualTrendText').value.trim();
+    if (!text) { alert('Paste a viral script first.'); return; }
+    var status = document.getElementById('trendStatus');
+    var wrap   = document.getElementById('trendRewriteWrap');
+    var preview= document.getElementById('trendRewritePreview');
+    status.textContent = '✦ Claude is rewriting for your business...';
+    wrap.classList.remove('visible');
+    try {
+      var platform = document.getElementById('platform') ? document.getElementById('platform').value : 'Instagram Reels';
+      var tone     = document.getElementById('tone')     ? document.getElementById('tone').value     : 'Professional';
+      var cta      = document.getElementById('cta')      ? document.getElementById('cta').value      : 'Book a free consultation';
+      var res = await fetch('/api/trends?action=rewrite', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ trendingText: text, niche: currentTrendNiche, platform, tone, cta }),
+      });
+      var data = await res.json();
+      if (data.error) throw new Error(data.error);
+      trendRewrittenScript = data.script;
+      preview.textContent = data.script;
+      wrap.classList.add('visible');
+      status.textContent = '✓ Done — review below then click Use This Script.';
+    } catch(err) {
+      status.textContent = '⚠ ' + err.message;
+    }
+  }
   var selectedTrendText = '';
   var trendRewrittenScript = '';
 
